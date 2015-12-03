@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 02 2015 22:54:42 GMT+0800 (CST)
+ * Date: Thu Dec 03 2015 12:55:24 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '0.19.0',
-  buildDate: 'Wed Dec 02 2015 22:54:42 GMT+0800 (CST)',
+  buildDate: 'Thu Dec 03 2015 12:55:24 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4535,13 +4535,15 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     for (var i = 0; i < settingList.length; i++) {
       rowItem = settingList[i];
-      for (var k = 0; k < rowItem.length; k++) {
-        cellItem = rowItem[k];
-        if (action === 'insert_row' && index < i) {
-          cellItem.row += amount;
-        }
-        if (action === 'insert_col' && index < k) {
-          cellItem.col += amount;
+      if (rowItem) {
+        for (var k = 0; k < rowItem.length; k++) {
+          cellItem = rowItem[k];
+          if (action === 'insert_row' && index < i) {
+            cellItem.row += amount;
+          }
+          if (action === 'insert_col' && index < k) {
+            cellItem.col += amount;
+          }
         }
       }
       if (action === 'insert_col') {
