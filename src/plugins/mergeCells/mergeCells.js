@@ -49,10 +49,14 @@ function CellInfoCollection() {
  */
 function MergeCells(mergeCellsSetting) {
   this.mergedCellInfoCollection = new CellInfoCollection();
+  var mergeCell;
 
   if (Array.isArray(mergeCellsSetting)) {
     for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
-      this.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
+      mergeCell = mergeCellsSetting[i];
+      if(mergeCell.rowspan > 1 || mergeCell.colspan > 1) {
+        this.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
+      }
     }
   }
 }
@@ -84,14 +88,30 @@ MergeCells.prototype.mergeRange = function(cellRange) {
 };
 
 MergeCells.prototype.mergeOrUnmergeSelection = function(cellRange) {
-  var info = this.mergedCellInfoCollection.getInfo(cellRange.from.row, cellRange.from.col);
-  if (info) {
-    //unmerge
+  var from = $.extend(true, {}, cellRange.from),
+      to = $.extend(true, {}, cellRange.to),
+      row = Math.min(from.row, to.row),
+      col = Math.min(from.col, to.col),
+      rowspan = Math.abs(from.row - cellRange.to.row) + 1,
+      colspan = Math.abs(from.col - cellRange.to.col) + 1;
+
+  // make sure that from is the left-top
+  if(from.row > to.row || from.col > to.col ) {
+    cellRange.from = to;
+    cellRange.to = from;
+  }
+
+  function expandMerge(info) {
+    return rowspan > 1 && rowspan > info.rowspan || colspan > 1 && colspan > info.colspan;
+  }
+
+  var info = this.mergedCellInfoCollection.getInfo(row, col);
+  if (info && !expandMerge(info)) {
     this.unmergeSelection(cellRange.from);
   } else {
-    //merge
     this.mergeSelection(cellRange);
   }
+
 };
 
 MergeCells.prototype.mergeSelection = function(cellRange) {
@@ -106,8 +126,13 @@ MergeCells.prototype.unmergeSelection = function(cellRange) {
 MergeCells.prototype.applySpanProperties = function(TD, row, col) {
   var info = this.mergedCellInfoCollection.getInfo(row, col);
 
+  // return if TD is not exist
+  if(!TD) {
+    return;
+  }
+
   if (info) {
-    if (info.row === row && info.col === col) {
+    if (info.row === row && info.col === col && !this.inOtherMergeCell(info)) {
       TD.setAttribute('rowspan', info.rowspan);
       TD.setAttribute('colspan', info.colspan);
     } else {
@@ -121,7 +146,23 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col) {
     TD.removeAttribute('colspan');
   }
 };
+MergeCells.prototype.inOtherMergeCell = function(info) {
+  var mergeCell,
+      inOtherMergeCell = false,
+      row = info.row,
+      col = info.col,
+      rowspan, colspan;
 
+  for(var i in this.mergedCellInfoCollection) {
+    mergeCell = this.mergedCellInfoCollection[i];
+
+    if(!(row == mergeCell.row && col == mergeCell.col) && row >= mergeCell.row && col>= mergeCell.col && row <= mergeCell.row+mergeCell.rowspan-1 && col <= mergeCell.col+mergeCell.colspan-1) {
+      inOtherMergeCell = true;
+    }
+  }
+
+  return inOtherMergeCell;
+};
 MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delta) {
   var sameRowspan = function(merged, coords) {
     if (coords.row >= merged.row && coords.row <= (merged.row + merged.rowspan - 1)) {
@@ -325,13 +366,13 @@ var afterInit = function() {
   }
 };
 
-var afterUpdateSettings = function() {
+var afterUpdateSettings = function(settings) {
   var instance = this;
-  var mergeCellsSetting = instance.getSettings().mergeCells;
+  var mergeCellsSetting = settings.mergeCells;
 
   if (mergeCellsSetting) {
     if (instance.mergeCells) {
-      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
+      instance.mergeCells.mergedCellInfoCollection = instance.mergeCells.mergedCellInfoCollection || new CellInfoCollection();
 
       if (Array.isArray(mergeCellsSetting)) {
         for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
@@ -342,11 +383,6 @@ var afterUpdateSettings = function() {
       instance.mergeCells = new MergeCells(mergeCellsSetting);
     }
 
-  } else {
-    // it doesn't actually turn off the plugin, just resets the settings. Need to refactor.
-    if (instance.mergeCells) {
-      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
-    }
   }
 };
 
@@ -359,8 +395,10 @@ var onBeforeKeyDown = function(event) {
 
   if (ctrlDown) {
     if (event.keyCode === 77) { //CTRL + M
-      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
+      var range = this.getSelectedRange();
+      this.mergeCells.mergeOrUnmergeSelection(range);
       this.render();
+      Handsontable.hooks.run(this, 'mergeCellsByShortcut', {start:range.from, end:range.to});
       stopImmediatePropagation(event);
     }
   }

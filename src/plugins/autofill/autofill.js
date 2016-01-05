@@ -48,6 +48,26 @@ function getDeltas(start, end, data, direction) {
   return deltas;
 }
 
+//解析需要autofill的值和属性
+function filterRawData(data, selRange, tableInst){
+  var destData = [], attrData = [], item, destItem,
+  baseRow = Math.min(selRange.from.row, selRange.to.row),
+  baseCol = Math.min(selRange.from.col, selRange.to.col);
+
+  for(var row=0,l=data.length; row<l; row++){
+    destData[row] = [];
+    attrData[row] = [];
+    for(var col=0,len=data[row].length; col<len; col++){
+      destData[row].push(data[row][col]);
+      attrData[row].push(tableInst.getCellMeta(baseRow + row, baseCol + col));
+    }
+  }
+  return {
+    value: destData,
+    attr: attrData
+  };
+}
+
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated
  * using the small square in the right bottom of the cell selection.
@@ -256,10 +276,11 @@ Autofill.prototype.apply = function() {
       to: this.instance.getSelectedRange().to,
     };
     _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
-    deltas = getDeltas(start, end, _data, direction);
+    _data = filterRawData(_data, selRange, this.instance);
+    deltas = getDeltas(start, end, _data.value, direction);
 
-    Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
-    this.instance.populateFromArray(start.row, start.col, _data, end.row, end.col, 'autofill', null, direction, deltas);
+    Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data.value);
+    this.instance.populateFromArray(start.row, start.col, _data.value, end.row, end.col, 'autofill', null, direction, deltas, _data.attr);
 
     this.instance.selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
     this.instance.selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));

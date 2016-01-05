@@ -72,11 +72,15 @@ class WalkontableTableRenderer {
       this.adjustAvailableNodes();
       adjusted = true;
 
-      // adjust column widths according to user widths settings
-      this.renderColumnHeaders();
+      // 如果noRefresh为true，则不重新渲染表格
+      if (!Handsontable.noRefresh) {
+        // adjust column widths according to user widths settings
+        this.renderColumnHeaders();
 
-      //Render table rows
-      this.renderRows(totalRows, rowsToRender, columnsToRender);
+        //Render table rows
+        this.renderRows(totalRows, rowsToRender, columnsToRender);
+      }
+      
 
       if (!this.wtTable.isWorkingOnClone()) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
@@ -133,6 +137,32 @@ class WalkontableTableRenderer {
       this.wtTable.tbodyChildrenLength--;
     }
   }
+
+  /**
+   * refresh table-left-head height
+   * edit by xp 2015.10.30
+   */
+  refreshRowHeaders() {
+    var totalRows = this.wot.getSetting('totalRows');
+    var TR;
+    var visibleRowIndex = 1;
+    var $leftTr = $('.ht_clone_left tr');
+    var masterTr;
+    while(visibleRowIndex < totalRows) {
+      TR = $leftTr[visibleRowIndex];
+      masterTr = this.wot.wtTable.TBODY.childNodes[visibleRowIndex-1];
+      if (TR && TR.firstChild && masterTr) {
+        var height = $(masterTr.firstChild).outerHeight();
+        if (height) {
+          TR.firstChild.style.height = height + 'px';
+        } else {
+          TR.firstChild.style.height = '';
+        }
+      }
+      visibleRowIndex++;
+    }
+  }
+
 
   /**
    * @param {Number} totalRows

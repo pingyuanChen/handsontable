@@ -89,7 +89,8 @@ function TableView(instance) {
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
 
-    if (isMouseDown || !instance.rootElement) {
+    if (isMouseDown || !instance.rootElement ||
+      (that.settings.outsideClickIgnore && that.settings.outsideClickIgnore(event))) {
       return; // it must have been started in a cell
     }
 
@@ -149,12 +150,16 @@ function TableView(instance) {
     }
   };
 
+  var selectedCurrentBorderWidth = that.settings.selectedCurrentBorderWidth;
+  var selectedCurrentBorderColor = that.settings.selectedCurrentBorderColor;
+  var selectedAreaBorderWidth = that.settings.selectedAreaBorderWidth;
+  var selectedAreaBorderColor = that.settings.selectedAreaBorderColor;
   var selections = [
     new WalkontableSelection({
       className: 'current',
       border: {
-        width: 2,
-        color: '#5292F7',
+        width: (typeof selectedCurrentBorderWidth === 'number' && selectedCurrentBorderWidth > -1) ? selectedCurrentBorderWidth : 2,
+        color: (typeof selectedCurrentBorderColor === 'string' && selectedCurrentBorderColor !== '') ? selectedCurrentBorderColor : '#5292F7',
         //style: 'solid', //not used
         cornerVisible: function() {
           return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
@@ -167,8 +172,8 @@ function TableView(instance) {
     new WalkontableSelection({
       className: 'area',
       border: {
-        width: 1,
-        color: '#89AFF9',
+        width: (typeof selectedAreaBorderWidth === 'number' && selectedAreaBorderWidth > -1) ? selectedAreaBorderWidth : 1,
+        color: (typeof selectedAreaBorderColor === 'string' && selectedAreaBorderColor !== '') ? selectedAreaBorderColor : '#89AFF9',
         //style: 'solid', // not used
         cornerVisible: function() {
           return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
@@ -186,8 +191,8 @@ function TableView(instance) {
     new WalkontableSelection({
       className: 'fill',
       border: {
-        width: 1,
-        color: 'red',
+        width: (typeof selectedAreaBorderWidth === 'number' && selectedAreaBorderWidth > -1) ? selectedAreaBorderWidth : 1,
+        color: (typeof selectedAreaBorderColor === 'string' && selectedAreaBorderColor !== '') ? selectedAreaBorderColor : '#89AFF9'
         //style: 'solid' // not used
       },
     }),
@@ -283,7 +288,11 @@ function TableView(instance) {
             instance.selection.setRangeEnd(coords);
           }
         } else {
-          if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
+
+          if (coords.row < 0 && coords.col < 0) { // 此为点击左上角corner的情况(-1, -1)
+            instance.selection.selectAll();
+
+          } else if ((coords.row < 0 || coords.col < 0) && (coords.row >= 0 || coords.col >= 0)) {
             if (coords.row < 0) {
               headerLevel = THEAD.childNodes.length - Array.prototype.indexOf.call(THEAD.childNodes, TR) - 1;
               headerColspan = instance.getHeaderColspan(coords.col, headerLevel);

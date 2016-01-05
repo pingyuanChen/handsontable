@@ -63,6 +63,7 @@ function CopyPastePlugin(instance) {
     let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
     let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
 
+    Handsontable.hooks.run(instance, 'beforePaste', instance.getData(), areaEnd);
     instance.addHookOnce('afterChange', (changes, source) => {
       let changesLength = changes ? changes.length : 0;
 
@@ -212,13 +213,22 @@ function CopyPastePlugin(instance) {
       let rowSet = [];
 
       arrayEach(copyableColumns, (column) => {
-        rowSet.push(instance.getCopyableData(row, column));
+        // rowSet.push(instance.getCopyableData(row, column));
+
+        if(instance.isCopyable(row, column)) {
+          let tdValue = instance.getDataAtCell(row, column);
+          let tdMeta = instance.getCellMeta(row, column);
+          rowSet.push(instance.generateCellHtml(tdValue, tdMeta));
+        } else {
+          rowSet.push('');
+        }
       });
 
       dataSet.push(rowSet);
     });
 
     return SheetClip.stringify(dataSet);
+
   };
 }
 

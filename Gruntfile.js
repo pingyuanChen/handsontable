@@ -289,7 +289,13 @@ module.exports = function(grunt) {
           dist: 'package.json'
         },
         options: {
-          disableUI: false
+          disableUI: true,
+          external: ['plugins', 'editors'],
+          exclude: [
+            'AutocompleteEditor', 'CheckboxEditor', 'DateEditor', 'DropdownEditor', 'MobileTextEditor', 'PasswordEditor', 'SelectEditor',
+            'ColumnSorting', 'Comments', 'UndoRedo', 'Search', 'AutoColumnSize', 'AutoRowSize', 'ObserveChanges', 
+            'pikaday', 'moment'
+          ]
         }
       },
       options: {
