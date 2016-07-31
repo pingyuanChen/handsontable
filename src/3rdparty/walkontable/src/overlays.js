@@ -121,7 +121,7 @@ class WalkontableOverlays {
 
       return;
     }
-    this.wot.draw(true);
+    this.wot.draw(true, 'scroll');
 
     if (this.verticalScrolling) {
       this.leftOverlay.onScroll();
@@ -154,17 +154,14 @@ class WalkontableOverlays {
 
     if (this.topOverlay.needFullRender) {
       listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event)]);
-      listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event)]);
     }
 
     if (this.bottomOverlay.needFullRender) {
       listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event)]);
-      listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event)]);
     }
 
     if (this.leftOverlay.needFullRender) {
       listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event)]);
-      listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event)]);
     }
 
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
@@ -232,12 +229,7 @@ class WalkontableOverlays {
       }
     }
 
-    if (event.type === 'scroll') {
-      this.syncScrollPositions(event);
-
-    } else {
-      this.translateMouseWheelToScroll(event);
-    }
+    this.syncScrollPositions(event);
   }
 
   /**
@@ -252,50 +244,6 @@ class WalkontableOverlays {
    */
   onKeyUp() {
     this.keyPressed = false;
-  }
-
-  /**
-   * Translate wheel event into scroll event and sync scroll overlays position
-   *
-   * @param {Event} event
-   * @returns {Boolean}
-   */
-  translateMouseWheelToScroll(event) {
-    let topOverlay = this.topOverlay.clone.wtTable.holder;
-    let bottomOverlay = this.bottomOverlay.clone ? this.bottomOverlay.clone.wtTable.holder : null;
-    let leftOverlay = this.leftOverlay.clone.wtTable.holder;
-    let eventMockup = {type: 'wheel'};
-    let tempElem = event.target;
-    let deltaY = event.wheelDeltaY || (-1) * event.deltaY;
-    let deltaX = event.wheelDeltaX || (-1) * event.deltaX;
-    let parentHolder;
-
-    // Fix for extremely slow header scrolling with a mousewheel on Firefox
-    if (event.deltaMode === 1) {
-      deltaY = deltaY * 120;
-      deltaX = deltaX * 120;
-    }
-
-    while (tempElem != document && tempElem != null) {
-      if (tempElem.className.indexOf('wtHolder') > -1) {
-        parentHolder = tempElem;
-        break;
-      }
-      tempElem = tempElem.parentNode;
-    }
-    eventMockup.target = parentHolder;
-
-    if (parentHolder == topOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
-
-    } else if (parentHolder == bottomOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaY);
-
-    } else if (parentHolder == leftOverlay) {
-      this.syncScrollPositions(eventMockup, (-0.2) * deltaX);
-    }
-
-    return false;
   }
 
   /**

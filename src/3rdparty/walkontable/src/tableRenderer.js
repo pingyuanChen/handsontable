@@ -41,9 +41,10 @@ class WalkontableTableRenderer {
   }
 
   /**
-   *
+   * @param {String} drawBy
    */
-  render() {
+  render(drawBy) {
+    let drawByScroll = drawBy === 'scroll';
     if (!this.wtTable.isWorkingOnClone()) {
       this.wot.getSetting('beforeDraw', true);
     }
@@ -82,7 +83,7 @@ class WalkontableTableRenderer {
       this.renderRows(totalRows, rowsToRender, columnsToRender);
 
       if (!this.wtTable.isWorkingOnClone()) {
-        workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
+        !drawByScroll && (workspaceWidth = this.wot.wtViewport.getWorkspaceWidth());
         this.wot.wtViewport.containerWidth = null;
       }
       this.adjustColumnHeaderHeights();
@@ -105,14 +106,14 @@ class WalkontableTableRenderer {
       let hiderWidth = outerWidth(this.wtTable.hider);
       let tableWidth = outerWidth(this.wtTable.TABLE);
 
-      if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
+      if (!drawByScroll && hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
         // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
         this.adjustColumnWidths(columnsToRender);
       }
 
       this.wot.wtOverlays.applyToDOM();
 
-      if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
+      if (!drawByScroll && workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
         //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
         this.wot.wtViewport.containerWidth = null;
 
@@ -180,7 +181,8 @@ class WalkontableTableRenderer {
       // Add and/or remove TDs to TR to match the desired number
       this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
 
-      lastTD = this.renderCells(sourceRowIndex, TR, columnsToRender);
+      this.renderCells(sourceRowIndex, TR, columnsToRender);
+      !TR.parentNode && this.appendToTbody(TR);
 
       if (!isWorkingOnClone ||
           // Necessary to refresh oversized row heights after editing cell in overlays
@@ -411,8 +413,8 @@ class WalkontableTableRenderer {
     let TR;
 
     if (rowIndex >= this.wtTable.tbodyChildrenLength) {
+      // will append to TBODY after renderCells
       TR = this.createRow();
-      this.appendToTbody(TR);
 
     } else if (rowIndex === 0) {
       TR = this.TBODY.firstChild;

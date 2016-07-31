@@ -177,9 +177,10 @@ class WalkontableTable {
    * Redraws the table
    *
    * @param fastDraw {Boolean} If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
+   * @param {String} drawBy
    * @returns {WalkontableTable}
    */
-  draw(fastDraw) {
+  draw(fastDraw, drawBy) {
     let totalRows = this.instance.getSetting('totalRows');
 
     if (!this.isWorkingOnClone()) {
@@ -225,7 +226,7 @@ class WalkontableTable {
       }
       this.rowFilter = new WalkontableRowFilter(startRow, totalRows, this.wot.getSetting('columnHeaders').length);
       this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), this.wot.getSetting('rowHeaders').length);
-      this._doDraw(); //creates calculator after draw
+      this._doDraw(drawBy); //creates calculator after draw
 
       this.alignOverlaysWithTrimmingContainer();
     }
@@ -253,10 +254,10 @@ class WalkontableTable {
     return this;
   }
 
-  _doDraw() {
+  _doDraw(drawBy) {
     const wtRenderer = new WalkontableTableRenderer(this);
 
-    wtRenderer.render();
+    wtRenderer.render(drawBy);
   }
 
   removeClassFromCells(className) {

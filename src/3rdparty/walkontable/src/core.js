@@ -75,16 +75,17 @@ class Walkontable {
    * @param {Boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if WalkontableTable.draw() does not force
    *                                   rendering anyway
+   * @param {String} drawBy
    * @returns {Walkontable}
    */
-  draw(fastDraw = false) {
+  draw(fastDraw = false, drawBy) {
     this.drawInterrupted = false;
 
     if (!fastDraw && !isVisible(this.wtTable.TABLE)) {
       // draw interrupted because TABLE is not visible
       this.drawInterrupted = true;
     } else {
-      this.wtTable.draw(fastDraw);
+      this.wtTable.draw(fastDraw, drawBy);
     }
 
     return this;
