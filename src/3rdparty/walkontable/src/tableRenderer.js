@@ -59,6 +59,7 @@ class WalkontableTableRenderer {
     let rowsToRender = this.wtTable.getRenderedRowsCount();
     let totalColumns = this.wot.getSetting('totalColumns');
     let totalRows = this.wot.getSetting('totalRows');
+    let hiddenRows = this.wot.getSetting('hiddenRows');
     let workspaceWidth;
     let adjusted = false;
 
@@ -79,7 +80,7 @@ class WalkontableTableRenderer {
       this.renderColumnHeaders();
 
       //Render table rows
-      this.renderRows(totalRows, rowsToRender, columnsToRender);
+      this.renderRows(totalRows, rowsToRender, columnsToRender, hiddenRows);
 
       if (!this.wtTable.isWorkingOnClone()) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
@@ -157,10 +158,10 @@ class WalkontableTableRenderer {
    * @param {Number} rowsToRender
    * @param {Number} columnsToRender
    */
-  renderRows(totalRows, rowsToRender, columnsToRender) {
-    let lastTD, TR;
+  renderRows(totalRows, rowsToRender, columnsToRender, hiddenRows) {
+    let lastTD, TR, initRowIndex;
     let visibleRowIndex = 0;
-    let sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
+    let sourceRowIndex = initRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     let isWorkingOnClone = this.wtTable.isWorkingOnClone();
 
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
@@ -172,6 +173,11 @@ class WalkontableTableRenderer {
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
         // We have as much rows as needed for this clone
         break;
+      }
+      if (hiddenRows && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
+        visibleRowIndex++;
+        sourceRowIndex = visibleRowIndex + initRowIndex;
+        continue;
       }
       TR = this.getOrCreateTrForRow(visibleRowIndex, TR);
 

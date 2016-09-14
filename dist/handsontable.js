@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.0.3
+ * Handsontable 1.0.4
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Sep 01 2016 17:36:19 GMT+0800 (CST)
+ * Date: Wed Sep 14 2016 11:53:39 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.0.3',
-  buildDate: 'Thu Sep 01 2016 17:36:19 GMT+0800 (CST)',
+  version: '1.0.4',
+  buildDate: 'Wed Sep 14 2016 11:53:39 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -2848,7 +2848,8 @@ var WalkontableSettings = function WalkontableSettings(wotInstance, settings) {
     scrollbarWidth: 10,
     scrollbarHeight: 10,
     renderAllRows: false,
-    groups: false
+    groups: false,
+    hiddenRows: []
   };
   this.settings = {};
   for (var i in this.defaults) {
@@ -3322,6 +3323,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var rowsToRender = this.wtTable.getRenderedRowsCount();
     var totalColumns = this.wot.getSetting('totalColumns');
     var totalRows = this.wot.getSetting('totalRows');
+    var hiddenRows = this.wot.getSetting('hiddenRows');
     var workspaceWidth;
     var adjusted = false;
     if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
@@ -3332,7 +3334,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       this.adjustAvailableNodes();
       adjusted = true;
       this.renderColumnHeaders();
-      this.renderRows(totalRows, rowsToRender, columnsToRender);
+      this.renderRows(totalRows, rowsToRender, columnsToRender, hiddenRows);
       if (!this.wtTable.isWorkingOnClone()) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
         this.wot.wtViewport.containerWidth = null;
@@ -3384,11 +3386,12 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       this.wtTable.tbodyChildrenLength--;
     }
   },
-  renderRows: function(totalRows, rowsToRender, columnsToRender) {
+  renderRows: function(totalRows, rowsToRender, columnsToRender, hiddenRows) {
     var lastTD,
-        TR;
+        TR,
+        initRowIndex;
     var visibleRowIndex = 0;
-    var sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
+    var sourceRowIndex = initRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     var isWorkingOnClone = this.wtTable.isWorkingOnClone();
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
@@ -3397,6 +3400,11 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
         break;
+      }
+      if (hiddenRows && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
+        visibleRowIndex++;
+        sourceRowIndex = visibleRowIndex + initRowIndex;
+        continue;
       }
       TR = this.getOrCreateTrForRow(visibleRowIndex, TR);
       this.renderRowHeaders(sourceRowIndex, TR);
@@ -5969,6 +5977,7 @@ DefaultSettings.prototype = {
   mergeCells: false,
   viewportRowRenderingOffset: 'auto',
   viewportColumnRenderingOffset: 'auto',
+  hiddenRows: void 0,
   validator: void 0,
   disableVisualSelection: false,
   sortIndicator: false,
@@ -15450,6 +15459,9 @@ function TableView(instance) {
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
+    hiddenRows: function() {
+      return that.settings.hiddenRows;
+    },
     fixedColumnsLeft: function() {
       return that.settings.fixedColumnsLeft;
     },

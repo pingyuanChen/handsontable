@@ -4284,7 +4284,7 @@ DefaultSettings.prototype = {
    * @since 0.19.0
    */
   //hiddenColumns: void 0,
-  //hiddenRows: void 0,
+  hiddenRows: void 0,
 
   /**
    * A usually small function or regular expression that validates the input.

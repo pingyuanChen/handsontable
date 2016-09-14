@@ -86,6 +86,8 @@ class WalkontableSettings {
 
       renderAllRows: false,
       groups: false,
+
+      hiddenRows: []
     };
 
     // reference to settings
