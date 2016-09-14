@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.0.5
+ * Handsontable 1.0.7
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Sep 14 2016 13:30:43 GMT+0800 (CST)
+ * Date: Wed Sep 14 2016 19:02:54 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.0.5',
-  buildDate: 'Wed Sep 14 2016 13:30:43 GMT+0800 (CST)',
+  version: '1.0.7',
+  buildDate: 'Wed Sep 14 2016 19:02:54 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3401,14 +3401,6 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
         break;
       }
-      if (hiddenRows && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
-        if (visibleRowIndex === 0) {
-          TR = this.TBODY.firstChild;
-        }
-        visibleRowIndex++;
-        sourceRowIndex = visibleRowIndex + initRowIndex;
-        continue;
-      }
       TR = this.getOrCreateTrForRow(visibleRowIndex, TR);
       this.renderRowHeaders(sourceRowIndex, TR);
       this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
@@ -3424,6 +3416,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         } else {
           TR.firstChild.style.height = '';
         }
+      }
+      if (hiddenRows && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
+        TR.style.display = 'none';
       }
       visibleRowIndex++;
       sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
@@ -3577,6 +3572,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     if (TR.className) {
       TR.removeAttribute('class');
     }
+    TR.removeAttribute('style');
     return TR;
   },
   createRow: function() {

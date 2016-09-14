@@ -174,14 +174,6 @@ class WalkontableTableRenderer {
         // We have as much rows as needed for this clone
         break;
       }
-      if (hiddenRows && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
-        if (visibleRowIndex === 0) {
-          TR = this.TBODY.firstChild;
-        }
-        visibleRowIndex++;
-        sourceRowIndex = visibleRowIndex + initRowIndex;
-        continue;
-      }
       TR = this.getOrCreateTrForRow(visibleRowIndex, TR);
 
       // Render row headers
@@ -210,6 +202,10 @@ class WalkontableTableRenderer {
         } else {
           TR.firstChild.style.height = '';
         }
+      }
+
+      if (hiddenRows && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
+        TR.style.display = 'none';
       }
       visibleRowIndex++;
       sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
@@ -433,6 +429,7 @@ class WalkontableTableRenderer {
     if (TR.className) {
       TR.removeAttribute('class');
     }
+    TR.removeAttribute('style');
 
     return TR;
   }
