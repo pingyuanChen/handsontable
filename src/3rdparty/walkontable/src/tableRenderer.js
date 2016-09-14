@@ -59,9 +59,13 @@ class WalkontableTableRenderer {
     let rowsToRender = this.wtTable.getRenderedRowsCount();
     let totalColumns = this.wot.getSetting('totalColumns');
     let totalRows = this.wot.getSetting('totalRows');
-    let hiddenRows = this.wot.getSetting('hiddenRows');
+    let hiddenRows = this.wot.getSetting('hiddenRows') || [];
     let workspaceWidth;
     let adjusted = false;
+
+    if (rowsToRender > 0) {
+      rowsToRender += hiddenRows.length;
+    }
 
     if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
         WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
@@ -204,7 +208,7 @@ class WalkontableTableRenderer {
         }
       }
 
-      if (hiddenRows && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
+      if (hiddenRows.length > 0 && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
         TR.style.display = 'none';
       }
       visibleRowIndex++;
