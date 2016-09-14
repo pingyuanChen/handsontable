@@ -175,6 +175,9 @@ class WalkontableTableRenderer {
         break;
       }
       if (hiddenRows && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
+        if (visibleRowIndex === 0) {
+          TR = this.TBODY.firstChild;
+        }
         visibleRowIndex++;
         sourceRowIndex = visibleRowIndex + initRowIndex;
         continue;
