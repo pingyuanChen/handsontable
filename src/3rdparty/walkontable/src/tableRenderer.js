@@ -38,6 +38,7 @@ class WalkontableTableRenderer {
     this.columnHeaderCount = 0;
     this.fixedRowsTop = 0;
     this.fixedRowsBottom = 0;
+    this.displayedRows = [];
   }
 
   /**
@@ -210,6 +211,8 @@ class WalkontableTableRenderer {
 
       if (hiddenRows.length > 0 && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
         TR.style.display = 'none';
+      } else {
+        this.displayedRows.push(visibleRowIndex);
       }
       visibleRowIndex++;
       sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);

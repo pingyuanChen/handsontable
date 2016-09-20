@@ -2602,8 +2602,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     // if (height === void 0 || height === priv.settings.height) {
     //  height = cellProperties.rowHeights;
     // }
-    var height = priv.settings.rowHeights;
+    var hiddenRows = priv.settings.hiddenRows || [],
+      height = priv.settings.rowHeights;
 
+    if (hiddenRows.indexOf(row) > -1) {
+      return 0;
+    }
     if (height !== void 0 && height !== null) {
       switch (typeof height) {
         case 'object': // array
@@ -2649,6 +2653,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    */
   this.countRows = function() {
     return priv.settings.data.length;
+  };
+
+  this.countDisplayRows = function() {
+    var hiddenRows = priv.settings.hiddenRows || [];
+    return priv.settings.data.length - hiddenRows.length;
   };
 
   /**

@@ -254,7 +254,7 @@ class WalkontableTable {
   }
 
   _doDraw() {
-    const wtRenderer = new WalkontableTableRenderer(this);
+    const wtRenderer = this.wtRenderer = new WalkontableTableRenderer(this);
 
     wtRenderer.render();
   }

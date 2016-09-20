@@ -348,7 +348,10 @@ class WalkontableBorder {
         toColumn,
         trimmingContainer,
         cornerOverlappingContainer,
-        ilen;
+        ilen,
+        displayedRows;
+
+    displayedRows = this.wot.wtTable.wtRenderer.displayedRows;
 
     if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
         WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
@@ -404,9 +407,11 @@ class WalkontableBorder {
     }
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     fromTD = this.wot.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
+    if (toRow >= displayedRows.length) {
+      toRow = displayedRows[displayedRows.length - 1];
+    }
     toTD = isMultiple ? this.wot.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
     fromOffset = offset(fromTD);
-
     var borderOffset = $.extend({}, fromOffset);
     var isFormula = ($(toTD).attr('class') || '').indexOf('formula-selected') > -1;
     var formulaOffset = {

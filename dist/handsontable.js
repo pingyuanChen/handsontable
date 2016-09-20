@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.0.8
+ * Handsontable 1.1.0
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Sep 14 2016 19:27:33 GMT+0800 (CST)
+ * Date: Tue Sep 20 2016 19:36:17 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.0.8',
-  buildDate: 'Wed Sep 14 2016 19:27:33 GMT+0800 (CST)',
+  version: '1.1.0',
+  buildDate: 'Tue Sep 20 2016 19:36:17 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -349,7 +349,9 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
         toColumn,
         trimmingContainer,
         cornerOverlappingContainer,
-        ilen;
+        ilen,
+        displayedRows;
+    displayedRows = this.wot.wtTable.wtRenderer.displayedRows;
     if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
       ilen = this.wot.getSetting('fixedRowsTop');
     } else if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
@@ -392,6 +394,9 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     }
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     fromTD = this.wot.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
+    if (toRow >= displayedRows.length) {
+      toRow = displayedRows[displayedRows.length - 1];
+    }
     toTD = isMultiple ? this.wot.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
     fromOffset = offset(fromTD);
     var borderOffset = $.extend({}, fromOffset);
@@ -3082,7 +3087,7 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     return this;
   },
   _doDraw: function() {
-    var wtRenderer = new WalkontableTableRenderer(this);
+    var wtRenderer = this.wtRenderer = new WalkontableTableRenderer(this);
     wtRenderer.render();
   },
   removeClassFromCells: function(className) {
@@ -3307,6 +3312,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
   this.columnHeaderCount = 0;
   this.fixedRowsTop = 0;
   this.fixedRowsBottom = 0;
+  this.displayedRows = [];
 };
 ($traceurRuntime.createClass)(WalkontableTableRenderer, {
   render: function() {
@@ -3422,6 +3428,8 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
       if (hiddenRows.length > 0 && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
         TR.style.display = 'none';
+      } else {
+        this.displayedRows.push(visibleRowIndex);
       }
       visibleRowIndex++;
       sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
@@ -5634,7 +5642,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return width;
   };
   this._getRowHeightFromSettings = function(row) {
-    var height = priv.settings.rowHeights;
+    var hiddenRows = priv.settings.hiddenRows || [],
+        height = priv.settings.rowHeights;
+    if (hiddenRows.indexOf(row) > -1) {
+      return 0;
+    }
     if (height !== void 0 && height !== null) {
       switch (typeof height) {
         case 'object':
@@ -5657,6 +5669,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this.countRows = function() {
     return priv.settings.data.length;
+  };
+  this.countDisplayRows = function() {
+    var hiddenRows = priv.settings.hiddenRows || [];
+    return priv.settings.data.length - hiddenRows.length;
   };
   this.countCols = function() {
     if (instance.dataType === 'object' || instance.dataType === 'function') {
