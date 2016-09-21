@@ -407,7 +407,7 @@ class WalkontableBorder {
     }
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     fromTD = this.wot.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
-    if (toRow >= displayedRows.length) {
+    if (corners[0] === 0 && toRow >= displayedRows.length) {
       toRow = displayedRows[displayedRows.length - 1];
     }
     toTD = isMultiple ? this.wot.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;

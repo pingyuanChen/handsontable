@@ -123,8 +123,10 @@ MergeCells.prototype.unmergeSelection = function(cellRange) {
   this.mergedCellInfoCollection.removeInfo(info.row, info.col);
 };
 
-MergeCells.prototype.applySpanProperties = function(TD, row, col) {
-  var info = this.mergedCellInfoCollection.getInfo(row, col);
+MergeCells.prototype.applySpanProperties = function(TD, row, col, hiddenRows) {
+  hiddenRows = hiddenRows || [];
+  var info = this.mergedCellInfoCollection.getInfo(row, col),
+    endRow, rowspan, colspan;
 
   // return if TD is not exist
   if(!TD) {
@@ -134,13 +136,24 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col) {
   // 2016 mobile#21
   if (info) {
     if (info.row === row && info.col === col && !this.inOtherMergeCell(info)) {
-
+      rowspan = info.rowspan;
+      colspan = info.colspan;
+      endRow = info.row + rowspan;
+      if (hiddenRows.length > 0) {
+        for (var i=0,l=hiddenRows.length; i<l; i++) {
+          if (hiddenRows[i] < endRow) {
+            rowspan --;
+          } else {
+            break;
+          }
+        }
+      }
       if(TD.objectEle) {
-        TD.attributes.push(['rowspan', info.rowspan]);
-        TD.attributes.push(['colspan', info.colspan]);
+        TD.attributes.push(['rowspan', rowspan]);
+        TD.attributes.push(['colspan', colspan]);
       } else {
-        TD.setAttribute('rowspan', info.rowspan);
-        TD.setAttribute('colspan', info.colspan);
+        TD.setAttribute('rowspan', rowspan);
+        TD.setAttribute('colspan', colspan);
       }
       
     } else {
@@ -449,7 +462,7 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
 
 var afterRenderer = function(TD, row, col, prop, value, cellProperties) {
   if (this.mergeCells) {
-    this.mergeCells.applySpanProperties(TD, row, col);
+    this.mergeCells.applySpanProperties(TD, row, col, this.getSettings().hiddenRows);
   }
 };
 

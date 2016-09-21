@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.1.0
+ * Handsontable 1.1.2
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Sep 20 2016 19:36:17 GMT+0800 (CST)
+ * Date: Wed Sep 21 2016 12:16:51 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.1.0',
-  buildDate: 'Tue Sep 20 2016 19:36:17 GMT+0800 (CST)',
+  version: '1.1.2',
+  buildDate: 'Wed Sep 21 2016 12:16:51 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -394,7 +394,7 @@ var WalkontableBorder = function WalkontableBorder(wotInstance, settings) {
     }
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     fromTD = this.wot.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
-    if (toRow >= displayedRows.length) {
+    if (corners[0] === 0 && toRow >= displayedRows.length) {
       toRow = displayedRows[displayedRows.length - 1];
     }
     toTD = isMultiple ? this.wot.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
@@ -13779,19 +13779,36 @@ MergeCells.prototype.unmergeSelection = function(cellRange) {
   var info = this.mergedCellInfoCollection.getInfo(cellRange.row, cellRange.col);
   this.mergedCellInfoCollection.removeInfo(info.row, info.col);
 };
-MergeCells.prototype.applySpanProperties = function(TD, row, col) {
-  var info = this.mergedCellInfoCollection.getInfo(row, col);
+MergeCells.prototype.applySpanProperties = function(TD, row, col, hiddenRows) {
+  hiddenRows = hiddenRows || [];
+  var info = this.mergedCellInfoCollection.getInfo(row, col),
+      endRow,
+      rowspan,
+      colspan;
   if (!TD) {
     return;
   }
   if (info) {
     if (info.row === row && info.col === col && !this.inOtherMergeCell(info)) {
+      rowspan = info.rowspan;
+      colspan = info.colspan;
+      endRow = info.row + rowspan;
+      if (hiddenRows.length > 0) {
+        for (var i = 0,
+            l = hiddenRows.length; i < l; i++) {
+          if (hiddenRows[i] < endRow) {
+            rowspan--;
+          } else {
+            break;
+          }
+        }
+      }
       if (TD.objectEle) {
-        TD.attributes.push(['rowspan', info.rowspan]);
-        TD.attributes.push(['colspan', info.colspan]);
+        TD.attributes.push(['rowspan', rowspan]);
+        TD.attributes.push(['colspan', colspan]);
       } else {
-        TD.setAttribute('rowspan', info.rowspan);
-        TD.setAttribute('colspan', info.colspan);
+        TD.setAttribute('rowspan', rowspan);
+        TD.setAttribute('colspan', colspan);
       }
     } else {
       if (TD.objectEle) {
@@ -14057,7 +14074,7 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
 };
 var afterRenderer = function(TD, row, col, prop, value, cellProperties) {
   if (this.mergeCells) {
-    this.mergeCells.applySpanProperties(TD, row, col);
+    this.mergeCells.applySpanProperties(TD, row, col, this.getSettings().hiddenRows);
   }
 };
 var modifyTransformFactory = function(hook) {
