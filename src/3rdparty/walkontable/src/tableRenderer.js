@@ -61,6 +61,7 @@ class WalkontableTableRenderer {
     let totalColumns = this.wot.getSetting('totalColumns');
     let totalRows = this.wot.getSetting('totalRows');
     let hiddenRows = this.wot.getSetting('hiddenRows') || [];
+    let filterRange = this.wot.getSetting('filterRange') || [];
     let workspaceWidth;
     let adjusted = false;
 
@@ -82,10 +83,10 @@ class WalkontableTableRenderer {
       adjusted = true;
 
       // adjust column widths according to user widths settings
-      this.renderColumnHeaders();
+      this.renderColumnHeaders(filterRange);
 
       //Render table rows
-      this.renderRows(totalRows, rowsToRender, columnsToRender, hiddenRows);
+      this.renderRows(totalRows, rowsToRender, columnsToRender, hiddenRows, filterRange);
 
       if (!this.wtTable.isWorkingOnClone()) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
@@ -163,13 +164,16 @@ class WalkontableTableRenderer {
    * @param {Number} rowsToRender
    * @param {Number} columnsToRender
    */
-  renderRows(totalRows, rowsToRender, columnsToRender, hiddenRows) {
+  renderRows(totalRows, rowsToRender, columnsToRender, hiddenRows, filterRange) {
     let lastTD, TR, initRowIndex;
     let visibleRowIndex = 0;
     let sourceRowIndex = initRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
-    let isWorkingOnClone = this.wtTable.isWorkingOnClone();
+    let isWorkingOnClone = this.wtTable.isWorkingOnClone(),
+      hasFilter = filterRange.length > 0,
+      isInFilterRange;
 
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
+      isInFilterRange = false;
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
         performanceWarningAppeared = true;
         console.warn('Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number ' +
@@ -182,7 +186,11 @@ class WalkontableTableRenderer {
       TR = this.getOrCreateTrForRow(visibleRowIndex, TR);
 
       // Render row headers
-      this.renderRowHeaders(sourceRowIndex, TR);
+      if (hasFilter) {
+        isInFilterRange = sourceRowIndex > filterRange[0] && sourceRowIndex <= filterRange[2];
+      }
+      this.renderRowHeaders(sourceRowIndex, TR, isInFilterRange);
+
       // Add and/or remove TDs to TR to match the desired number
       this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
 
@@ -459,8 +467,8 @@ class WalkontableTableRenderer {
    * @param {Number} col
    * @param {HTMLTableCellElement} TH
    */
-  renderRowHeader(row, col, TH) {
-    TH.className = '';
+  renderRowHeader(row, col, TH, isInFilterRange) {
+    TH.className = isInFilterRange ? 's-filter-row' : '';
     TH.removeAttribute('style');
     this.rowHeaders[col](row, TH, col);
   }
@@ -469,7 +477,7 @@ class WalkontableTableRenderer {
    * @param {Number} row
    * @param {HTMLTableCellElement} TR
    */
-  renderRowHeaders(row, TR) {
+  renderRowHeaders(row, TR, isInFilterRange) {
     for (let TH = TR.firstChild, visibleColIndex = 0; visibleColIndex < this.rowHeaderCount; visibleColIndex++) {
       // If the number of row headers increased we need to create TH or replace an existing TD node with TH
       if (!TH) {
@@ -479,7 +487,7 @@ class WalkontableTableRenderer {
       } else if (TH.nodeName == 'TD') {
         TH = replaceTdWithTh(TH, TR);
       }
-      this.renderRowHeader(row, visibleColIndex, TH);
+      this.renderRowHeader(row, visibleColIndex, TH, isInFilterRange);
       // http://jsperf.com/nextsibling-vs-indexed-childnodes
       TH = TH.nextSibling;
     }
@@ -496,8 +504,9 @@ class WalkontableTableRenderer {
   /**
    * Renders the column headers
    */
-  renderColumnHeaders() {
-    let overlayName = this.wot.getOverlayName();
+  renderColumnHeaders(filterRange) {
+    let overlayName = this.wot.getOverlayName(),
+      isInFilterRange;
 
     if (!this.columnHeaderCount) {
       return;
@@ -509,8 +518,13 @@ class WalkontableTableRenderer {
 
       for (let renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
         let sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
-
-        this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
+        isInFilterRange = false;
+        if (filterRange.length > 0) {
+          if (sourceCol >= filterRange[1] && sourceCol <= filterRange[3]) {
+            isInFilterRange = true;
+          }
+        }
+        this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount], isInFilterRange);
       }
     }
   }
@@ -586,8 +600,8 @@ class WalkontableTableRenderer {
    * @param {HTMLTableCellElement} TH
    * @returns {*}
    */
-  renderColumnHeader(row, col, TH) {
-    TH.className = '';
+  renderColumnHeader(row, col, TH, isInFilterRange) {
+    TH.className = isInFilterRange ? 's-filter-col' : '';
     TH.removeAttribute('style');
 
     return this.columnHeaders[row](col, TH, row);

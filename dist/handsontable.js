@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Sep 21 2016 12:16:51 GMT+0800 (CST)
+ * Date: Wed Sep 21 2016 17:11:16 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '1.1.2',
-  buildDate: 'Wed Sep 21 2016 12:16:51 GMT+0800 (CST)',
+  buildDate: 'Wed Sep 21 2016 17:11:16 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -2854,7 +2854,8 @@ var WalkontableSettings = function WalkontableSettings(wotInstance, settings) {
     scrollbarHeight: 10,
     renderAllRows: false,
     groups: false,
-    hiddenRows: []
+    hiddenRows: [],
+    filterRange: []
   };
   this.settings = {};
   for (var i in this.defaults) {
@@ -3330,6 +3331,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var totalColumns = this.wot.getSetting('totalColumns');
     var totalRows = this.wot.getSetting('totalRows');
     var hiddenRows = this.wot.getSetting('hiddenRows') || [];
+    var filterRange = this.wot.getSetting('filterRange') || [];
     var workspaceWidth;
     var adjusted = false;
     if (rowsToRender > 0) {
@@ -3342,8 +3344,8 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     if (totalColumns > 0) {
       this.adjustAvailableNodes();
       adjusted = true;
-      this.renderColumnHeaders();
-      this.renderRows(totalRows, rowsToRender, columnsToRender, hiddenRows);
+      this.renderColumnHeaders(filterRange);
+      this.renderRows(totalRows, rowsToRender, columnsToRender, hiddenRows, filterRange);
       if (!this.wtTable.isWorkingOnClone()) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
         this.wot.wtViewport.containerWidth = null;
@@ -3395,14 +3397,17 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       this.wtTable.tbodyChildrenLength--;
     }
   },
-  renderRows: function(totalRows, rowsToRender, columnsToRender, hiddenRows) {
+  renderRows: function(totalRows, rowsToRender, columnsToRender, hiddenRows, filterRange) {
     var lastTD,
         TR,
         initRowIndex;
     var visibleRowIndex = 0;
     var sourceRowIndex = initRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
-    var isWorkingOnClone = this.wtTable.isWorkingOnClone();
+    var isWorkingOnClone = this.wtTable.isWorkingOnClone(),
+        hasFilter = filterRange.length > 0,
+        isInFilterRange;
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
+      isInFilterRange = false;
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
         performanceWarningAppeared = true;
         console.warn('Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number ' + 'of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.');
@@ -3411,7 +3416,10 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         break;
       }
       TR = this.getOrCreateTrForRow(visibleRowIndex, TR);
-      this.renderRowHeaders(sourceRowIndex, TR);
+      if (hasFilter) {
+        isInFilterRange = sourceRowIndex > filterRange[0] && sourceRowIndex <= filterRange[2];
+      }
+      this.renderRowHeaders(sourceRowIndex, TR, isInFilterRange);
       this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
       lastTD = this.renderCells(sourceRowIndex, TR, columnsToRender);
       if (!isWorkingOnClone || this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
@@ -3593,12 +3601,12 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     }
     return TR;
   },
-  renderRowHeader: function(row, col, TH) {
-    TH.className = '';
+  renderRowHeader: function(row, col, TH, isInFilterRange) {
+    TH.className = isInFilterRange ? 's-filter-row' : '';
     TH.removeAttribute('style');
     this.rowHeaders[col](row, TH, col);
   },
-  renderRowHeaders: function(row, TR) {
+  renderRowHeaders: function(row, TR, isInFilterRange) {
     for (var TH = TR.firstChild,
         visibleColIndex = 0; visibleColIndex < this.rowHeaderCount; visibleColIndex++) {
       if (!TH) {
@@ -3607,7 +3615,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       } else if (TH.nodeName == 'TD') {
         TH = replaceTdWithTh(TH, TR);
       }
-      this.renderRowHeader(row, visibleColIndex, TH);
+      this.renderRowHeader(row, visibleColIndex, TH, isInFilterRange);
       TH = TH.nextSibling;
     }
   },
@@ -3615,8 +3623,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     this.adjustColGroups();
     this.adjustThead();
   },
-  renderColumnHeaders: function() {
-    var overlayName = this.wot.getOverlayName();
+  renderColumnHeaders: function(filterRange) {
+    var overlayName = this.wot.getOverlayName(),
+        isInFilterRange;
     if (!this.columnHeaderCount) {
       return;
     }
@@ -3625,7 +3634,13 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       var TR = this.getTrForColumnHeaders(i);
       for (var renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
         var sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
-        this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
+        isInFilterRange = false;
+        if (filterRange.length > 0) {
+          if (sourceCol >= filterRange[1] && sourceCol <= filterRange[3]) {
+            isInFilterRange = true;
+          }
+        }
+        this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount], isInFilterRange);
       }
     }
   },
@@ -3677,8 +3692,8 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
   getTrForColumnHeaders: function(index) {
     return this.THEAD.childNodes[index];
   },
-  renderColumnHeader: function(row, col, TH) {
-    TH.className = '';
+  renderColumnHeader: function(row, col, TH, isInFilterRange) {
+    TH.className = isInFilterRange ? 's-filter-col' : '';
     TH.removeAttribute('style');
     return this.columnHeaders[row](col, TH, row);
   },
@@ -5995,7 +6010,6 @@ DefaultSettings.prototype = {
   mergeCells: false,
   viewportRowRenderingOffset: 'auto',
   viewportColumnRenderingOffset: 'auto',
-  hiddenRows: void 0,
   validator: void 0,
   disableVisualSelection: false,
   sortIndicator: false,
@@ -15494,6 +15508,9 @@ function TableView(instance) {
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
+    filterRange: function() {
+      return that.settings.filterRange;
+    },
     hiddenRows: function() {
       return that.settings.hiddenRows;
     },

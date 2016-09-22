@@ -214,6 +214,9 @@ function TableView(instance) {
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
+    filterRange: function() {
+      return that.settings.filterRange;
+    },
     hiddenRows: function() {
       return that.settings.hiddenRows;
     },

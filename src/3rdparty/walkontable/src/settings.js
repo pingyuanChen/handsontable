@@ -87,7 +87,8 @@ class WalkontableSettings {
       renderAllRows: false,
       groups: false,
 
-      hiddenRows: []
+      hiddenRows: [],
+      filterRange: []
     };
 
     // reference to settings
