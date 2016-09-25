@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.1.2
+ * Handsontable 1.1.4
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Sep 21 2016 17:11:16 GMT+0800 (CST)
+ * Date: Sun Sep 25 2016 18:16:27 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.1.2',
-  buildDate: 'Wed Sep 21 2016 17:11:16 GMT+0800 (CST)',
+  version: '1.1.4',
+  buildDate: 'Sun Sep 25 2016 18:16:27 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4211,7 +4211,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   grid = {
     alter: function(action, index, amount, source, keepEmptyRows) {
-      var delta;
+      var delta,
+          hiddenRows,
+          filterRange;
       amount = amount || 1;
       updateCellPropoties(action, index, amount);
       updateColWidthAndRowHeight(action, index, amount);
@@ -6010,6 +6012,8 @@ DefaultSettings.prototype = {
   mergeCells: false,
   viewportRowRenderingOffset: 'auto',
   viewportColumnRenderingOffset: 'auto',
+  hiddenRows: void 0,
+  filterRange: [],
   validator: void 0,
   disableVisualSelection: false,
   sortIndicator: false,
@@ -8434,7 +8438,7 @@ function offset(elem) {
     offsetTop += elem.offsetTop;
     lastElem = elem;
   }
-  if (lastElem && lastElem.style.position === 'fixed') {
+  if (lastElem && lastElem.style && lastElem.style.position === 'fixed') {
     offsetLeft += window.pageXOffset || docElem.scrollLeft;
     offsetTop += window.pageYOffset || docElem.scrollTop;
   }

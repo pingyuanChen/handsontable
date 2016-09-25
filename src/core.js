@@ -102,7 +102,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
      * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
     alter: function(action, index, amount, source, keepEmptyRows) {
-      var delta;
+      var delta, hiddenRows, filterRange;
 
       amount = amount || 1;
 
@@ -1716,6 +1716,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           // Update settings
           if (!init && settings.hasOwnProperty(i)) {
             GridSettings.prototype[i] = settings[i];
+            // if (['hiddenRows', 'filterRange'].indexOf(i) > -1) {
+            //   instance.view.settings.hiddenRows = settings[i];
+            // }
           }
         }
       }
@@ -4293,8 +4296,8 @@ DefaultSettings.prototype = {
    * @since 0.19.0
    */
   //hiddenColumns: void 0,
-  // hiddenRows: void 0,
-  // filterRange: [],
+  hiddenRows: void 0,
+  filterRange: [],
 
   /**
    * A usually small function or regular expression that validates the input.

@@ -449,7 +449,7 @@ export function offset(elem) {
   /* jshint ignore:end */
 
   //slow - http://jsperf.com/offset-vs-getboundingclientrect/6
-  if (lastElem && lastElem.style.position === 'fixed') {
+  if (lastElem && lastElem.style && lastElem.style.position === 'fixed') {
     //if(lastElem !== document.body) { //faster but does gives false positive in Firefox
     offsetLeft += window.pageXOffset || docElem.scrollLeft;
     offsetTop += window.pageYOffset || docElem.scrollTop;
