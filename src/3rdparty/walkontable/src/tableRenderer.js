@@ -65,9 +65,9 @@ class WalkontableTableRenderer {
     let workspaceWidth;
     let adjusted = false;
 
-    if (rowsToRender > 0) {
-      rowsToRender += hiddenRows.length;
-    }
+    // if (rowsToRender > 0) {
+    //   rowsToRender += hiddenRows.length;
+    // }
 
     if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
         WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
@@ -170,6 +170,7 @@ class WalkontableTableRenderer {
     let sourceRowIndex = initRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     let isWorkingOnClone = this.wtTable.isWorkingOnClone(),
       hasFilter = filterRange.length > 0,
+      r, r2,
       isInFilterRange;
 
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
@@ -187,7 +188,9 @@ class WalkontableTableRenderer {
 
       // Render row headers
       if (hasFilter) {
-        isInFilterRange = sourceRowIndex > filterRange[0] && sourceRowIndex <= filterRange[2];
+        r = filterRange[0];
+        r2 = r + filterRange[2];
+        isInFilterRange = sourceRowIndex > r && sourceRowIndex <= r2;
       }
       this.renderRowHeaders(sourceRowIndex, TR, isInFilterRange);
 
@@ -517,10 +520,13 @@ class WalkontableTableRenderer {
       let TR = this.getTrForColumnHeaders(i);
 
       for (let renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
-        let sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
+        let sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex),
+          c, c2;
         isInFilterRange = false;
         if (filterRange.length > 0) {
-          if (sourceCol >= filterRange[1] && sourceCol <= filterRange[3]) {
+          c = filterRange[1];
+          c2 = c + filterRange[3];
+          if (sourceCol >= c && sourceCol <= c2) {
             isInFilterRange = true;
           }
         }

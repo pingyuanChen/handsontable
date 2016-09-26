@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.1.4
+ * Handsontable 1.1.5
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Sep 25 2016 18:16:27 GMT+0800 (CST)
+ * Date: Mon Sep 26 2016 21:54:35 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.1.4',
-  buildDate: 'Sun Sep 25 2016 18:16:27 GMT+0800 (CST)',
+  version: '1.1.5',
+  buildDate: 'Mon Sep 26 2016 21:54:35 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -3334,9 +3334,6 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var filterRange = this.wot.getSetting('filterRange') || [];
     var workspaceWidth;
     var adjusted = false;
-    if (rowsToRender > 0) {
-      rowsToRender += hiddenRows.length;
-    }
     if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) || WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
       this.columnHeaders = [];
       this.columnHeaderCount = 0;
@@ -3405,6 +3402,8 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     var sourceRowIndex = initRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     var isWorkingOnClone = this.wtTable.isWorkingOnClone(),
         hasFilter = filterRange.length > 0,
+        r,
+        r2,
         isInFilterRange;
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       isInFilterRange = false;
@@ -3417,7 +3416,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
       TR = this.getOrCreateTrForRow(visibleRowIndex, TR);
       if (hasFilter) {
-        isInFilterRange = sourceRowIndex > filterRange[0] && sourceRowIndex <= filterRange[2];
+        r = filterRange[0];
+        r2 = r + filterRange[2];
+        isInFilterRange = sourceRowIndex > r && sourceRowIndex <= r2;
       }
       this.renderRowHeaders(sourceRowIndex, TR, isInFilterRange);
       this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
@@ -3633,10 +3634,14 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
     for (var i = 0; i < this.columnHeaderCount; i++) {
       var TR = this.getTrForColumnHeaders(i);
       for (var renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
-        var sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
+        var sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex),
+            c,
+            c2;
         isInFilterRange = false;
         if (filterRange.length > 0) {
-          if (sourceCol >= filterRange[1] && sourceCol <= filterRange[3]) {
+          c = filterRange[1];
+          c2 = c + filterRange[3];
+          if (sourceCol >= c && sourceCol <= c2) {
             isInFilterRange = true;
           }
         }
