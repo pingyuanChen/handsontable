@@ -79,7 +79,9 @@ function TableView(instance) {
 
     isMouseDown = false;
 
-    if (isOutsideInput(document.activeElement)) {
+    var isQltable = instance.getSettings().isQltable;
+    var isOutsideDom = isQltable ? event.target : document.activeElement;
+    if (isOutsideInput(isOutsideDom, isQltable)) {
       instance.unlisten();
     }
   });
@@ -205,6 +207,7 @@ function TableView(instance) {
   selections.fill = selections[3];
 
   var walkontableConfig = {
+    isQltable: that.settings.isQltable,
     debug: function() {
       return that.settings.debug;
     },

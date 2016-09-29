@@ -22,12 +22,13 @@ class WalkontableTable {
    * @param {Walkontable} wotInstance
    * @param {HTMLTableElement} table
    */
-  constructor(wotInstance, table) {
+  constructor(wotInstance, settings) {
     this.wot = wotInstance;
 
     // legacy support
     this.instance = this.wot;
-    this.TABLE = table;
+    this.TABLE = settings.table;
+    this.isQltable = settings.isQltable;
     this.TBODY = null;
     this.THEAD = null;
     this.COLGROUP = null;
@@ -91,6 +92,10 @@ class WalkontableTable {
     if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
       spreader = document.createElement('div');
       spreader.className = 'wtSpreader';
+
+      if (this.isQltable) {
+        spreader.setAttribute('contenteditable', false);
+      }
 
       if (parent) {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
@@ -163,7 +168,11 @@ class WalkontableTable {
         this.wtRootElement.style.overflow = 'visible';
       } else {
         this.holder.style.width = getStyle(trimmingElement, 'width');
-        this.holder.style.height = getStyle(trimmingElement, 'height');
+
+        if (!this.isQltable) {
+          this.holder.style.height = getStyle(trimmingElement, 'height');  
+        }
+        
         this.holder.style.overflow = '';
       }
     }

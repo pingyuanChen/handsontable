@@ -922,8 +922,35 @@ export function isInput(element) {
  * @param element - DOM element
  * @returns {boolean}
  */
-export function isOutsideInput(element) {
-  return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
+export function isOutsideInput(element, isQltable) {
+  if (isQltable) {
+    var isOutside = true
+    var node = window.getSelection().anchorNode;
+
+    if (node) {
+      while(!node || !node.className || node.className.indexOf('ql-editor') == -1) {
+        if (node && node.className && node.className.indexOf('handsontableInput') >= 0) {
+          isOutside = false;
+          break;
+        } else {
+          node = node.parentNode;
+        }
+      }  
+    } else {
+      while(!element || !element.className || element.className.indexOf('ql-editor') == -1) {
+        if (element && element.className && element.className.indexOf('ql-table') >= 0) {
+          isOutside = false;
+          break;
+        } else {
+          element = element.parentNode;
+        }
+      }
+    }
+    return isOutside;
+
+  } else {
+    return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
+  }
 }
 
 // https://gist.github.com/paulirish/1579671

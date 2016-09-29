@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.1.6
+ * Handsontable 1.1.7
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Sep 27 2016 11:04:54 GMT+0800 (CST)
+ * Date: Thu Sep 29 2016 15:53:05 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.1.6',
-  buildDate: 'Tue Sep 27 2016 11:04:54 GMT+0800 (CST)',
+  version: '1.1.7',
+  buildDate: 'Thu Sep 29 2016 15:53:05 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -1121,18 +1121,19 @@ var WalkontableTopLeftCornerOverlay = ($__overlay_47_topLeftCorner_46_js__ = req
 var Walkontable = function Walkontable(settings) {
   var originalHeaders = [];
   this.guid = 'wt_' + randomString();
+  this.isQltable = settings.isQltable;
   if (settings.cloneSource) {
     this.cloneSource = settings.cloneSource;
     this.cloneOverlay = settings.cloneOverlay;
     this.wtSettings = settings.cloneSource.wtSettings;
-    this.wtTable = new WalkontableTable(this, settings.table, settings.wtRootElement);
+    this.wtTable = new WalkontableTable(this, settings);
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = settings.cloneSource.wtViewport;
     this.wtEvent = new WalkontableEvent(this);
     this.selections = this.cloneSource.selections;
   } else {
     this.wtSettings = new WalkontableSettings(this, settings);
-    this.wtTable = new WalkontableTable(this, settings.table);
+    this.wtTable = new WalkontableTable(this, settings);
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = new WalkontableViewport(this);
     this.wtEvent = new WalkontableEvent(this);
@@ -2596,7 +2597,9 @@ var WalkontableOverlays = function WalkontableOverlays(wotInstance) {
     var headerColumnSize = this.wot.wtViewport.getColumnHeaderHeight();
     var hiderStyle = this.wot.wtTable.hider.style;
     hiderStyle.width = (headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)) + 'px';
-    hiderStyle.height = (headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1) + 'px';
+    if (!this.instance.isQltable) {
+      hiderStyle.height = (headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1) + 'px';
+    }
     this.topOverlay.adjustElementsSize(force);
     this.leftOverlay.adjustElementsSize(force);
     if (this.bottomOverlay.clone) {
@@ -2928,10 +2931,11 @@ var WalkontableCellRange = ($__cell_47_range__ = require("cell/range"), $__cell_
 var WalkontableColumnFilter = ($__filter_47_column__ = require("filter/column"), $__filter_47_column__ && $__filter_47_column__.__esModule && $__filter_47_column__ || {default: $__filter_47_column__}).WalkontableColumnFilter;
 var WalkontableRowFilter = ($__filter_47_row__ = require("filter/row"), $__filter_47_row__ && $__filter_47_row__.__esModule && $__filter_47_row__ || {default: $__filter_47_row__}).WalkontableRowFilter;
 var WalkontableTableRenderer = ($__tableRenderer__ = require("tableRenderer"), $__tableRenderer__ && $__tableRenderer__.__esModule && $__tableRenderer__ || {default: $__tableRenderer__}).WalkontableTableRenderer;
-var WalkontableTable = function WalkontableTable(wotInstance, table) {
+var WalkontableTable = function WalkontableTable(wotInstance, settings) {
   this.wot = wotInstance;
   this.instance = this.wot;
-  this.TABLE = table;
+  this.TABLE = settings.table;
+  this.isQltable = settings.isQltable;
   this.TBODY = null;
   this.THEAD = null;
   this.COLGROUP = null;
@@ -2977,6 +2981,9 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
     if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
       spreader = document.createElement('div');
       spreader.className = 'wtSpreader';
+      if (this.isQltable) {
+        spreader.setAttribute('contenteditable', false);
+      }
       if (parent) {
         parent.insertBefore(spreader, table);
       }
@@ -3024,7 +3031,9 @@ var WalkontableTable = function WalkontableTable(wotInstance, table) {
         this.wtRootElement.style.overflow = 'visible';
       } else {
         this.holder.style.width = getStyle(trimmingElement, 'width');
-        this.holder.style.height = getStyle(trimmingElement, 'height');
+        if (!this.isQltable) {
+          this.holder.style.height = getStyle(trimmingElement, 'height');
+        }
         this.holder.style.overflow = '';
       }
     }
@@ -5304,7 +5313,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (typeof height == 'function') {
         height = height();
       }
-      instance.rootElement.style.height = height + 'px';
+      if (!settings.isQltable) {
+        instance.rootElement.style.height = height + 'px';
+      } else {
+        instance.rootElement.style.height = 'auto';
+      }
     }
     if (typeof settings.width != 'undefined') {
       var width = settings.width;
@@ -8716,8 +8729,33 @@ function isInput(element) {
   var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
   return inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true';
 }
-function isOutsideInput(element) {
-  return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
+function isOutsideInput(element, isQltable) {
+  if (isQltable) {
+    var isOutside = true;
+    var node = window.getSelection().anchorNode;
+    if (node) {
+      while (!node || !node.className || node.className.indexOf('ql-editor') == -1) {
+        if (node && node.className && node.className.indexOf('handsontableInput') >= 0) {
+          isOutside = false;
+          break;
+        } else {
+          node = node.parentNode;
+        }
+      }
+    } else {
+      while (!element || !element.className || element.className.indexOf('ql-editor') == -1) {
+        if (element && element.className && element.className.indexOf('ql-table') >= 0) {
+          isOutside = false;
+          break;
+        } else {
+          element = element.parentNode;
+        }
+      }
+    }
+    return isOutside;
+  } else {
+    return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
+  }
 }
 var lastTime = 0;
 var vendors = ['ms', 'moz', 'webkit', 'o'];
@@ -12978,6 +13016,9 @@ var ManualColumnResize = function ManualColumnResize(hotInstance) {
   this.dblclick = 0;
   this.autoresizeTimeout = null;
   this.manualColumnWidths = [];
+  if (hotInstance.getSettings().isQltable) {
+    this.handle.setAttribute('contenteditable', false);
+  }
   addClass(this.handle, 'manualColumnResizer');
   addClass(this.guide, 'manualColumnResizerGuide');
 };
@@ -15409,7 +15450,9 @@ function TableView(instance) {
       instance.selection.finish();
     }
     isMouseDown = false;
-    if (isOutsideInput(document.activeElement)) {
+    var isQltable = instance.getSettings().isQltable;
+    var isOutsideDom = isQltable ? event.target : document.activeElement;
+    if (isOutsideInput(isOutsideDom, isQltable)) {
       instance.unlisten();
     }
   });
@@ -15508,6 +15551,7 @@ function TableView(instance) {
   selections.highlight = selections[2];
   selections.fill = selections[3];
   var walkontableConfig = {
+    isQltable: that.settings.isQltable,
     debug: function() {
       return that.settings.debug;
     },
