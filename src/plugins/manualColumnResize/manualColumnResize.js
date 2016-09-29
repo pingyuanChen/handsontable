@@ -34,6 +34,9 @@ class ManualColumnResize extends BasePlugin {
     this.dblclick = 0;
     this.autoresizeTimeout = null;
     this.manualColumnWidths = [];
+    if (hotInstance.getSettings().isQltable) {
+      this.handle.setAttribute('contenteditable', false);  
+    }
 
     addClass(this.handle, 'manualColumnResizer');
     addClass(this.guide, 'manualColumnResizerGuide');

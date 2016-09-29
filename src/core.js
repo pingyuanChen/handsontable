@@ -1784,7 +1784,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         height = height();
       }
 
-      instance.rootElement.style.height = height + 'px';
+      if (!settings.isQltable) {
+        instance.rootElement.style.height = height + 'px';  
+      } else {
+        instance.rootElement.style.height = 'auto';  
+      }
+      
     }
 
     if (typeof settings.width != 'undefined') {

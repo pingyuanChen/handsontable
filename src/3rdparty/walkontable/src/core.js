@@ -30,20 +30,20 @@ class Walkontable {
 
     // this is the namespace for global events
     this.guid = 'wt_' + randomString();
-
+    this.isQltable = settings.isQltable;
     // bootstrap from settings
     if (settings.cloneSource) {
       this.cloneSource = settings.cloneSource;
       this.cloneOverlay = settings.cloneOverlay;
       this.wtSettings = settings.cloneSource.wtSettings;
-      this.wtTable = new WalkontableTable(this, settings.table, settings.wtRootElement);
+      this.wtTable = new WalkontableTable(this, settings);
       this.wtScroll = new WalkontableScroll(this);
       this.wtViewport = settings.cloneSource.wtViewport;
       this.wtEvent = new WalkontableEvent(this);
       this.selections = this.cloneSource.selections;
     } else {
       this.wtSettings = new WalkontableSettings(this, settings);
-      this.wtTable = new WalkontableTable(this, settings.table);
+      this.wtTable = new WalkontableTable(this, settings);
       this.wtScroll = new WalkontableScroll(this);
       this.wtViewport = new WalkontableViewport(this);
       this.wtEvent = new WalkontableEvent(this);
