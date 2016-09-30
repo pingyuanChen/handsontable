@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.1.7
+ * Handsontable 1.1.8
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Sep 29 2016 15:53:05 GMT+0800 (CST)
+ * Date: Fri Sep 30 2016 14:32:55 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.1.7',
-  buildDate: 'Thu Sep 29 2016 15:53:05 GMT+0800 (CST)',
+  version: '1.1.8',
+  buildDate: 'Fri Sep 30 2016 14:32:55 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -4567,6 +4567,21 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 pushData = false;
               }
               if (pushData) {
+                var curMerge = instance.mergeCells.mergedCellInfoCollection.getInfo(current.row, current.col);
+                if (source === 'paste' && curMerge && /<td[^>]*>([\s\S]*?)<\/td>/.test(value)) {
+                  var selectedRange = instance.getSelected();
+                  var selectionInMerge = selectedRange[0] === curMerge.row && selectedRange[1] === curMerge.col && selectedRange[2] === curMerge.row + curMerge.rowspan - 1 && selectedRange[3] === curMerge.col + curMerge.colspan - 1;
+                  var isMergeStart = curMerge.row === current.row && curMerge.col === current.col;
+                  var copyOneCell = input.length === 1 && input[0].length === 1;
+                  if (selectionInMerge && copyOneCell) {
+                    value = value.replace(/data-(colspan|rowspan)="([\s\S]*?)"/g, '');
+                    if (isMergeStart) {
+                      value = value.replace('<td', '<td data-rowspan="' + curMerge.rowspan + '" data-colspan="' + curMerge.colspan + '" ');
+                    } else {
+                      value = value.replace(/(>)(.*?)(<)/g, '$1$3');
+                    }
+                  }
+                }
                 setData.push([current.row, current.col, value]);
               }
               pushData = true;
