@@ -546,6 +546,32 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 pushData = false;
               }
               if (pushData) {
+                var curMerge = instance.mergeCells.mergedCellInfoCollection.getInfo(current.row, current.col);
+
+                // 如果是粘贴，并且粘贴的对象是合并单元格，并且粘贴的内容是td
+                if (source === 'paste' && curMerge && /<td[^>]*>([\s\S]*?)<\/td>/.test(value)) {
+                  var selectedRange = instance.getSelected();
+                  var selectionInMerge = selectedRange[0] === curMerge.row && selectedRange[1] === curMerge.col &&
+                  selectedRange[2] === curMerge.row + curMerge.rowspan - 1 && selectedRange[3] === curMerge.col + curMerge.colspan - 1;
+                  var isMergeStart = curMerge.row === current.row && curMerge.col === current.col;
+                  var copyOneCell = input.length === 1 && input[0].length === 1;
+
+                  // 如果粘贴的选区是一个完整的合并单元格，并且复制的是一个单独的单元格
+                  if (selectionInMerge && copyOneCell) {
+
+                    // 去掉粘贴内容的合并属性
+                    value = value.replace(/data-(colspan|rowspan)="([\s\S]*?)"/g, '');
+
+                    // 如果粘贴的是合并单元格的起点，则保留合并属性
+                    if (isMergeStart) {
+                      value = value.replace('<td', '<td data-rowspan="' + curMerge.rowspan + '" data-colspan="' + curMerge.colspan + '" ');
+                    } else {
+
+                      // 如果不是合并单元格起点，则去掉粘贴的内容，保留样式
+                      value = value.replace(/(>)(.*?)(<)/g, '$1$3');
+                    }
+                  }
+                }
                 setData.push([current.row, current.col, value]);
               }
               pushData = true;
