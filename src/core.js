@@ -126,7 +126,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               priv.selRange.from.row = priv.selRange.from.row + delta;
               selection.transformEnd(delta, 0); // will call render() internally
             }
-            
+
             // force render after inert_row
             instance.forceFullRender = true;
             selection.refreshBorders(); // it will call render and prepare methods
@@ -416,11 +416,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           let pushData = true;
           let cellMeta;
 
-          let iterators = {
-            row: 1,
-            col: 1
-          };  //init iterators for autofill
-
           let getInputValue = function getInputValue(row, col = null) {
             let rowValue = input[row % input.length];
 
@@ -498,14 +493,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               };
 
               if (source === 'autofill') {
-                index.row = index.row % input.length;
-                index.col = index.col % input[0].length;
-                // if(index.row == input.length){
-                //   index.row = 0;
-                // }
-                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, iterators, selected),
-                  meta;
-                iterators = result.iterators;
+                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, selected);
                 if (result) {
                   value = typeof (result.value) === 'undefined' ? value : result.value;
                 }
@@ -517,13 +505,13 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                     renderer: void 0
                   });
                 }else{
-                  meta = inputAttr[index.row][index.col];
+                  let meta = inputAttr[index.row % input.length][index.col % input[0].length];
                   if(meta.dataAttrs && meta.dataAttrs.format){
                     instance.setCellMetaObject(current.row, current.col, {
                       format: meta.dataAttrs.format
                     });
                   }
-                  value = instance.generateCellHtml(value, meta);  
+                  value = instance.generateCellHtml(value, meta);
                 }
               }
               if (value !== null && typeof value === 'object') {
@@ -667,7 +655,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         col: null,
       };
 
-      var isEnableFormulaRange = instance.getSettings().isEnableFormulaRange, 
+      var isEnableFormulaRange = instance.getSettings().isEnableFormulaRange,
         isSetFormulaRange = false;
       if(isEnableFormulaRange && isEnableFormulaRange()){
         isSetFormulaRange = true;
@@ -719,7 +707,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           instance.view.wt.selections.area.add(priv.selRange.to);
         }
       }
-      
+
       // set up highlight
       if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
@@ -1008,7 +996,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
     Handsontable.hooks.run(instance, 'afterInit');
   };
- 
+
   /**
    * update cellPropoties position when add row or add col
    *
@@ -1048,7 +1036,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       } else {
         console.log('row not exsit');
       }
-      
+
 
       // insert new col items
       if(action === 'insert_col' && rowItem){
@@ -1811,11 +1799,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
 
       if (!settings.isQltable) {
-        instance.rootElement.style.height = height + 'px';  
+        instance.rootElement.style.height = height + 'px';
       } else {
-        instance.rootElement.style.height = 'auto';  
+        instance.rootElement.style.height = 'auto';
       }
-      
+
     }
 
     if (typeof settings.width != 'undefined') {
@@ -1988,7 +1976,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       var i, key;
 
       if (meta.classes) {
-          td.addClass(meta.classes.join(' '));  
+          td.addClass(meta.classes.join(' '));
       }
 
       td.removeClass('area highlight');
@@ -2001,7 +1989,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       tempContainer.append(td);
       return tempContainer.html();
     }
-      
+
     function isHtml(str){
       var htmlReg = /^<(\w+)(\s+[^>]*)?((\/?>)|(>([^<>]*)<\/\1>))$/;
       return htmlReg.test(str);
@@ -4707,54 +4695,54 @@ DefaultSettings.prototype = {
    * for current selections border style
    *
    * border width
-   * 
+   *
    * @type {int}
-   */ 
+   */
   selectedCurrentBorderWidth: 2,
 
   /**
    * for current selections border style
-   * 
+   *
    * border color
-   * 
+   *
    * @type {hex}
-   */ 
+   */
   selectedCurrentBorderColor: '#5292F7',
 
   /**
    * for area selections border style
    *
    * border width
-   * 
+   *
    * @type {int}
-   */ 
+   */
   selectedAreaBorderWidth: 1,
 
   /**
    * for area selections border style
-   * 
+   *
    * border color
-   * 
+   *
    * @type {hex}
-   */ 
+   */
   selectedAreaBorderColor: '#89AFF9',
 
   /**
-   * for selections border style which is been dragging 
+   * for selections border style which is been dragging
    *
    * border width
-   * 
+   *
    * @type {int}
-   */ 
+   */
   selectedFillBorderWidth: 1,
 
   /**
-   * for selections border style which is been dragging 
-   * 
+   * for selections border style which is been dragging
+   *
    * border color
-   * 
+   *
    * @type {hex}
-   */ 
+   */
   selectedFillBorderColor: 'red'
 };
 Handsontable.DefaultSettings = DefaultSettings;

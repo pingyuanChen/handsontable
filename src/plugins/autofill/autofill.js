@@ -1,3 +1,4 @@
+import moment from '../../../node_modules/moment/moment.js';
 
 import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
 import {eventManager as eventManagerObject} from './../../eventManager';
@@ -5,6 +6,10 @@ import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 
 export {Autofill};
+
+const datePatternAry = ['YYYY/MM/DD', 'YYYY-MM-DD', 'HH:mm:ss', 'YYYY/MM/DD HH:mm:ss'];
+const excelDateBeginning = moment('1900-01-01T00:00:00').add(-2, 'days')
+const oneDaySeconds = moment.duration(1, 'days').asSeconds()
 
 function getDeltas(start, end, data, direction, attr) {
   var
@@ -16,8 +21,7 @@ function getDeltas(start, end, data, direction, attr) {
     arr = [],
     diffRow, diffCol,
     startValue, endValue, endRow, colAttr, endCol, rowAttr,
-    delta,
-    datePatternAry = ['YYYY/MM/DD', 'YYYY-MM-DD', 'HH:mm:ss', 'YYYY/MM/DD HH:mm:ss'];
+    delta;
 
   diffRow = end.row - start.row;
   diffCol = end.col - start.col;
@@ -52,21 +56,46 @@ function getDeltas(start, end, data, direction, attr) {
 
   return deltas;
 
-  function genDelta(startValue, endValue, endPos, attr, direction, totalLen) {
-    var isAdd = ['down', 'right'].indexOf(direction) > -1,
-      delta;
-    if (endPos === 0 && attr && attr.format && datePatternAry.indexOf(attr.format) > -1) { 
-      if (attr.format === 'HH:mm:ss') {
-        delta = isAdd ? 1/24 : -1/24;
-      } else {
-        delta = isAdd ? 1 : -1;
-      }
-    } else {
-      delta = (isAdd ? (endValue - startValue) : (startValue - endValue)) / (totalLen - 1) || 0;
-    }
+}
 
-    return delta;
+function genDelta(startValue, endValue, endPos, attr, direction, totalLen) {
+  var isAdd = ['down', 'right'].indexOf(direction) > -1,
+    isDate = attr && attr.format && datePatternAry.indexOf(attr.format) > -1,
+    delta;
+
+  if (!isAdd) [startValue, endValue] = [endValue, startValue];
+  if (endPos === 0 && isDate) {
+    if (attr.format === 'HH:mm:ss') {
+      delta = isAdd ? 1/24 : -1/24;
+    } else {
+      delta = isAdd ? 1 : -1;
+    }
+  } else if (isDate) {
+    delta = genDeltaDate(
+      numberToMoment(startValue),
+      numberToMoment(endValue),
+      totalLen - 1
+    );
+  } else {
+    delta = (endValue - startValue) / (totalLen - 1) || 0;
   }
+
+  return delta;
+}
+
+function genDeltaDate(startMoment, endMoment, len) {
+  const diffMonths = endMoment.diff(startMoment, 'months', true)
+  const months = diffMonths / len
+  return Number.isInteger(months)
+    ? {months}
+    : endMoment.diff(startMoment, 'seconds', true) / oneDaySeconds / len
+}
+
+function numberToMoment(number) {
+  return excelDateBeginning.clone().add(
+    number * oneDaySeconds,
+    'seconds'
+  )
 }
 
 //解析需要autofill的值和属性
