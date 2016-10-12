@@ -169,6 +169,7 @@ class WalkontableTableRenderer {
     let visibleRowIndex = 0;
     let sourceRowIndex = initRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     let isWorkingOnClone = this.wtTable.isWorkingOnClone(),
+      curRowIndex,
       hasFilter = filterRange.length > 0,
       r, r2,
       isInFilterRange;
@@ -220,10 +221,11 @@ class WalkontableTableRenderer {
         }
       }
 
-      if (hiddenRows.length > 0 && hiddenRows.indexOf(visibleRowIndex + initRowIndex) > -1) {
+      curRowIndex = visibleRowIndex + initRowIndex;
+      if (hiddenRows.length > 0 && hiddenRows.indexOf(curRowIndex) > -1) {
         TR.style.display = 'none';
       } else {
-        this.displayedRows.push(visibleRowIndex);
+        this.displayedRows.push(curRowIndex);
       }
       visibleRowIndex++;
       sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
