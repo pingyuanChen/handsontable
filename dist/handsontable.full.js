@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Oct 17 2016 12:16:13 GMT+0800 (CST)
+ * Date: Mon Oct 17 2016 14:02:07 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '1.2.1',
-  buildDate: 'Mon Oct 17 2016 12:16:13 GMT+0800 (CST)',
+  buildDate: 'Mon Oct 17 2016 14:02:07 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -7532,7 +7532,8 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__;
+var $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__,
+    $___46__46__47__46__46__47__46__46__47_utils_47_genHiddenRowsObj__;
 var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ = require("helpers/dom/element"), $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__.__esModule && $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ || {default: $___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__}),
     addClass = $__0.addClass,
     empty = $__0.empty,
@@ -7540,6 +7541,7 @@ var $__0 = ($___46__46__47__46__46__47__46__46__47_helpers_47_dom_47_element__ =
     hasClass = $__0.hasClass,
     innerHeight = $__0.innerHeight,
     outerWidth = $__0.outerWidth;
+var genHiddenRowsObj = ($___46__46__47__46__46__47__46__46__47_utils_47_genHiddenRowsObj__ = require("utils/genHiddenRowsObj"), $___46__46__47__46__46__47__46__46__47_utils_47_genHiddenRowsObj__ && $___46__46__47__46__46__47__46__46__47_utils_47_genHiddenRowsObj__.__esModule && $___46__46__47__46__46__47__46__46__47_utils_47_genHiddenRowsObj__ || {default: $___46__46__47__46__46__47__46__46__47_utils_47_genHiddenRowsObj__}).default;
 var performanceWarningAppeared = false;
 var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
   this.wtTable = wtTable;
@@ -7621,9 +7623,9 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
             this.COLGROUP.childNodes[i].style.width = (isNaN(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting) + 'px';
           }
         }
-        for (var i$__2 = firstRendered; i$__2 < lastRendered; i$__2++) {
-          var width = this.wtTable.getStretchedColumnWidth(i$__2);
-          var renderedIndex = this.columnFilter.sourceToRendered(i$__2);
+        for (var i$__3 = firstRendered; i$__3 < lastRendered; i$__3++) {
+          var width = this.wtTable.getStretchedColumnWidth(i$__3);
+          var renderedIndex = this.columnFilter.sourceToRendered(i$__3);
           this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
         }
       }
@@ -7649,7 +7651,8 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         hasFilter = filterRange.length > 0,
         r,
         r2,
-        isInFilterRange;
+        isInFilterRange,
+        hiddenRowsObj = genHiddenRowsObj(hiddenRows);
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       isInFilterRange = false;
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
@@ -7681,7 +7684,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
         }
       }
       curRowIndex = visibleRowIndex + initRowIndex;
-      if (hiddenRows.length > 0 && hiddenRows.indexOf(curRowIndex) > -1) {
+      if (hiddenRows.length > 0 && hiddenRowsObj[curRowIndex]) {
         TR.style.display = 'none';
       } else {
         this.displayedRows.push(curRowIndex);
@@ -7932,7 +7935,7 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       }
       var theadChildrenLength = this.THEAD.childNodes.length;
       if (theadChildrenLength > this.columnHeaders.length) {
-        for (var i$__3 = this.columnHeaders.length; i$__3 < theadChildrenLength; i$__3++) {
+        for (var i$__4 = this.columnHeaders.length; i$__4 < theadChildrenLength; i$__4++) {
           this.THEAD.removeChild(this.THEAD.lastChild);
         }
       }
@@ -7983,7 +7986,7 @@ function replaceThWithTd(TH, TR) {
 window.WalkontableTableRenderer = WalkontableTableRenderer;
 
 //# 
-},{"helpers/dom/element":37}],22:[function(require,module,exports){
+},{"helpers/dom/element":37,"utils/genHiddenRowsObj":76}],22:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   WalkontableViewport: {get: function() {
@@ -8393,6 +8396,7 @@ var $__numeral__,
     $__helpers_47_string__,
     $__helpers_47_number__,
     $__tableView__,
+    $__utils_47_genHiddenRowsObj__,
     $__helpers_47_data__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_coords__,
     $__3rdparty_47_walkontable_47_src_47_cell_47_range__,
@@ -8419,10 +8423,11 @@ var getRenderer = ($__renderers__ = require("renderers"), $__renderers__ && $__r
 var randomString = ($__helpers_47_string__ = require("helpers/string"), $__helpers_47_string__ && $__helpers_47_string__.__esModule && $__helpers_47_string__ || {default: $__helpers_47_string__}).randomString;
 var rangeEach = ($__helpers_47_number__ = require("helpers/number"), $__helpers_47_number__ && $__helpers_47_number__.__esModule && $__helpers_47_number__ || {default: $__helpers_47_number__}).rangeEach;
 var TableView = ($__tableView__ = require("tableView"), $__tableView__ && $__tableView__.__esModule && $__tableView__ || {default: $__tableView__}).TableView;
-var $__13 = ($__helpers_47_data__ = require("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}),
-    translateRowsToColumns = $__13.translateRowsToColumns,
-    cellMethodLookupFactory = $__13.cellMethodLookupFactory,
-    spreadsheetColumnLabel = $__13.spreadsheetColumnLabel;
+var genHiddenRowsObj = ($__utils_47_genHiddenRowsObj__ = require("utils/genHiddenRowsObj"), $__utils_47_genHiddenRowsObj__ && $__utils_47_genHiddenRowsObj__.__esModule && $__utils_47_genHiddenRowsObj__ || {default: $__utils_47_genHiddenRowsObj__}).default;
+var $__14 = ($__helpers_47_data__ = require("helpers/data"), $__helpers_47_data__ && $__helpers_47_data__.__esModule && $__helpers_47_data__ || {default: $__helpers_47_data__}),
+    translateRowsToColumns = $__14.translateRowsToColumns,
+    cellMethodLookupFactory = $__14.cellMethodLookupFactory,
+    spreadsheetColumnLabel = $__14.spreadsheetColumnLabel;
 var WalkontableCellCoords = ($__3rdparty_47_walkontable_47_src_47_cell_47_coords__ = require("3rdparty/walkontable/src/cell/coords"), $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
 var WalkontableCellRange = ($__3rdparty_47_walkontable_47_src_47_cell_47_range__ = require("3rdparty/walkontable/src/cell/range"), $__3rdparty_47_walkontable_47_src_47_cell_47_range__ && $__3rdparty_47_walkontable_47_src_47_cell_47_range__.__esModule && $__3rdparty_47_walkontable_47_src_47_cell_47_range__ || {default: $__3rdparty_47_walkontable_47_src_47_cell_47_range__}).WalkontableCellRange;
 var WalkontableSelection = ($__3rdparty_47_walkontable_47_src_47_selection__ = require("3rdparty/walkontable/src/selection"), $__3rdparty_47_walkontable_47_src_47_selection__ && $__3rdparty_47_walkontable_47_src_47_selection__.__esModule && $__3rdparty_47_walkontable_47_src_47_selection__ || {default: $__3rdparty_47_walkontable_47_src_47_selection__}).WalkontableSelection;
@@ -9702,7 +9707,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     return data[0];
   };
   this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
-    var $__18 = this;
+    var $__19 = this;
     var previousType = null;
     var currentType = null;
     if (rowFrom === void 0) {
@@ -9721,7 +9726,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     rangeEach(Math.min(rowFrom, rowTo), Math.max(rowFrom, rowTo), (function(row) {
       var isTypeEqual = true;
       rangeEach(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), (function(column) {
-        var cellType = $__18.getCellMeta(row, column);
+        var cellType = $__19.getCellMeta(row, column);
         currentType = cellType.type;
         if (previousType) {
           isTypeEqual = previousType === currentType;
@@ -9922,8 +9927,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
   this._getRowHeightFromSettings = function(row) {
     var hiddenRows = priv.settings.hiddenRows || [],
-        height = priv.settings.rowHeights;
-    if (hiddenRows.indexOf(row) > -1) {
+        height = priv.settings.rowHeights,
+        hiddenRowsObj = genHiddenRowsObj(hiddenRows);
+    if (hiddenRowsObj[row]) {
       return 0;
     }
     if (height !== void 0 && height !== null) {
@@ -10307,7 +10313,7 @@ DefaultSettings.prototype = {
 Handsontable.DefaultSettings = DefaultSettings;
 
 //# 
-},{"3rdparty/walkontable/src/calculator/viewportColumns":3,"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/selection":18,"dataMap":26,"editorManager":27,"eventManager":33,"helpers/array":34,"helpers/data":36,"helpers/dom/element":37,"helpers/number":41,"helpers/object":42,"helpers/setting":43,"helpers/string":44,"numeral":"numeral","plugins":48,"renderers":71,"tableView":75}],26:[function(require,module,exports){
+},{"3rdparty/walkontable/src/calculator/viewportColumns":3,"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/selection":18,"dataMap":26,"editorManager":27,"eventManager":33,"helpers/array":34,"helpers/data":36,"helpers/dom/element":37,"helpers/number":41,"helpers/object":42,"helpers/setting":43,"helpers/string":44,"numeral":"numeral","plugins":48,"renderers":71,"tableView":75,"utils/genHiddenRowsObj":76}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   DataMap: {get: function() {
@@ -18010,12 +18016,14 @@ var $___46__46__47__46__46__47_plugins__,
     $___46__46__47__46__46__47_helpers_47_dom_47_event__,
     $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__,
     $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range__,
-    $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_table__;
+    $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_table__,
+    $___46__46__47__46__46__47_utils_47_genHiddenRowsObj__;
 var registerPlugin = ($___46__46__47__46__46__47_plugins__ = require("plugins"), $___46__46__47__46__46__47_plugins__ && $___46__46__47__46__46__47_plugins__.__esModule && $___46__46__47__46__46__47_plugins__ || {default: $___46__46__47__46__46__47_plugins__}).registerPlugin;
 var stopImmediatePropagation = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = require("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {default: $___46__46__47__46__46__47_helpers_47_dom_47_event__}).stopImmediatePropagation;
 var WalkontableCellCoords = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ = require("3rdparty/walkontable/src/cell/coords"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_coords__}).WalkontableCellCoords;
 var WalkontableCellRange = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range__ = require("3rdparty/walkontable/src/cell/range"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_cell_47_range__}).WalkontableCellRange;
 var WalkontableTable = ($___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_table__ = require("3rdparty/walkontable/src/table"), $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_table__ && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_table__.__esModule && $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_table__ || {default: $___46__46__47__46__46__47_3rdparty_47_walkontable_47_src_47_table__}).WalkontableTable;
+var genHiddenRowsObj = ($___46__46__47__46__46__47_utils_47_genHiddenRowsObj__ = require("../../utils/genHiddenRowsObj"), $___46__46__47__46__46__47_utils_47_genHiddenRowsObj__ && $___46__46__47__46__46__47_utils_47_genHiddenRowsObj__.__esModule && $___46__46__47__46__46__47_utils_47_genHiddenRowsObj__ || {default: $___46__46__47__46__46__47_utils_47_genHiddenRowsObj__}).default;
 ;
 function CellInfoCollection() {
   var collection = [];
@@ -18164,13 +18172,6 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col, hiddenRows) {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
     }
-  }
-  function genHiddenRowsObj(hiddenRows) {
-    var obj = {};
-    hiddenRows.forEach(function(item) {
-      obj[item] = true;
-    });
-    return obj;
   }
   function setSpanAttrs(TD, rowspan, colspan) {
     if (TD.objectEle) {
@@ -18643,7 +18644,7 @@ Handsontable.hooks.add('afterRemoveRow', onAfterRemoveRow);
 Handsontable.MergeCells = MergeCells;
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/table":20,"helpers/dom/event":38,"plugins":48}],68:[function(require,module,exports){
+},{"../../utils/genHiddenRowsObj":76,"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/cell/range":6,"3rdparty/walkontable/src/table":20,"helpers/dom/event":38,"plugins":48}],68:[function(require,module,exports){
 "use strict";
 Object.defineProperties(exports, {
   MultipleSelectionHandles: {get: function() {
@@ -20204,7 +20205,18 @@ TableView.prototype.destroy = function() {
 ;
 
 //# 
-},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/core":7,"3rdparty/walkontable/src/selection":18,"eventManager":33,"helpers/dom/element":37,"helpers/dom/event":38}],"SheetClip":[function(require,module,exports){
+},{"3rdparty/walkontable/src/cell/coords":5,"3rdparty/walkontable/src/core":7,"3rdparty/walkontable/src/selection":18,"eventManager":33,"helpers/dom/element":37,"helpers/dom/event":38}],76:[function(require,module,exports){
+"use strict";
+module.exports = function genHiddenRowsObj(hiddenRows) {
+  var obj = {};
+  hiddenRows.forEach(function(item) {
+    obj[item] = true;
+  });
+  return obj;
+};
+
+//# 
+},{}],"SheetClip":[function(require,module,exports){
 "use strict";
 (function(global) {
   "use strict";

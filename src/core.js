@@ -11,6 +11,7 @@ import {getRenderer} from './renderers';
 import {randomString} from './helpers/string';
 import {rangeEach} from './helpers/number';
 import {TableView} from './tableView';
+import genHiddenRowsObj from './utils/genHiddenRowsObj';
 import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
 import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
 import {WalkontableCellRange} from './3rdparty/walkontable/src/cell/range';
@@ -2625,9 +2626,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     //  height = cellProperties.rowHeights;
     // }
     var hiddenRows = priv.settings.hiddenRows || [],
-      height = priv.settings.rowHeights;
+      height = priv.settings.rowHeights,
+      hiddenRowsObj = genHiddenRowsObj(hiddenRows);
 
-    if (hiddenRows.indexOf(row) > -1) {
+    if (hiddenRowsObj[row]) {
       return 0;
     }
     if (height !== void 0 && height !== null) {

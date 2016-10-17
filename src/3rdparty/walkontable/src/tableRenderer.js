@@ -7,6 +7,7 @@ import {
   innerHeight,
   outerWidth
 } from './../../../helpers/dom/element';
+import genHiddenRowsObj from './../../../utils/genHiddenRowsObj';
 
 let performanceWarningAppeared = false;
 
@@ -172,7 +173,8 @@ class WalkontableTableRenderer {
       curRowIndex,
       hasFilter = filterRange.length > 0,
       r, r2,
-      isInFilterRange;
+      isInFilterRange,
+      hiddenRowsObj = genHiddenRowsObj(hiddenRows);
 
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       isInFilterRange = false;
@@ -222,7 +224,7 @@ class WalkontableTableRenderer {
       }
 
       curRowIndex = visibleRowIndex + initRowIndex;
-      if (hiddenRows.length > 0 && hiddenRows.indexOf(curRowIndex) > -1) {
+      if (hiddenRows.length > 0 && hiddenRowsObj[curRowIndex]) {
         TR.style.display = 'none';
       } else {
         this.displayedRows.push(curRowIndex);

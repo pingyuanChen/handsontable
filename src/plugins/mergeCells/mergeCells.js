@@ -3,6 +3,7 @@ import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
 import {WalkontableTable} from './../../3rdparty/walkontable/src/table';
+import genHiddenRowsObj from '../../utils/genHiddenRowsObj';
 
 export {MergeCells};
 
@@ -183,14 +184,6 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col, hiddenRows) {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
     }
-  }
-
-  function genHiddenRowsObj(hiddenRows) {
-    var obj = {};
-    hiddenRows.forEach(function(item){
-      obj[item] = true;
-    });
-    return obj;
   }
 
   function setSpanAttrs(TD, rowspan, colspan){
