@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.2.0
+ * Handsontable 1.2.1
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Oct 12 2016 10:47:32 GMT+0800 (CST)
+ * Date: Mon Oct 17 2016 12:16:13 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.2.0',
-  buildDate: 'Wed Oct 12 2016 10:47:32 GMT+0800 (CST)',
+  version: '1.2.1',
+  buildDate: 'Mon Oct 17 2016 12:16:13 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -18105,12 +18105,18 @@ MergeCells.prototype.unmergeSelection = function(cellRange) {
   var info = this.mergedCellInfoCollection.getInfo(cellRange.row, cellRange.col);
   this.mergedCellInfoCollection.removeInfo(info.row, info.col);
 };
+var appliedHiddenMergeCellsInfo = {};
 MergeCells.prototype.applySpanProperties = function(TD, row, col, hiddenRows) {
   hiddenRows = hiddenRows || [];
   var info = this.mergedCellInfoCollection.getInfo(row, col),
-      endRow,
+      r,
+      r2,
+      newR,
       rowspan,
-      colspan;
+      colspan,
+      newMergeInfo,
+      appliedInfo,
+      hiddenRowsObj;
   if (!TD) {
     return;
   }
@@ -18118,24 +18124,32 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col, hiddenRows) {
     if (info.row === row && info.col === col && !this.inOtherMergeCell(info)) {
       rowspan = info.rowspan;
       colspan = info.colspan;
-      endRow = info.row + rowspan;
       if (hiddenRows.length > 0) {
-        for (var i = 0,
-            l = hiddenRows.length; i < l; i++) {
-          if (hiddenRows[i] < endRow) {
-            rowspan--;
-          } else {
-            break;
+        hiddenRowsObj = genHiddenRowsObj(hiddenRows);
+        r = newR = info.row;
+        r2 = r + rowspan;
+        for (var i = r; i < r2; i++) {
+          if (hiddenRowsObj[i]) {
+            rowspan -= 1;
+            if (newR === i) {
+              newR += 1;
+            }
           }
         }
+        if (newR !== r) {
+          TD.removeAttribute('rowspan');
+          TD.removeAttribute('colspan');
+          appliedHiddenMergeCellsInfo[newR + '-' + col] = {
+            rowspan: rowspan,
+            colspan: colspan
+          };
+          return;
+        }
       }
-      if (TD.objectEle) {
-        TD.attributes.push(['rowspan', rowspan]);
-        TD.attributes.push(['colspan', colspan]);
-      } else {
-        TD.setAttribute('rowspan', rowspan);
-        TD.setAttribute('colspan', colspan);
-      }
+      setSpanAttrs(TD, rowspan, colspan);
+    } else if (appliedInfo = appliedHiddenMergeCellsInfo[row + '-' + col]) {
+      setSpanAttrs(TD, appliedInfo.rowspan, appliedInfo.colspan);
+      delete appliedHiddenMergeCellsInfo[row + '-' + col];
     } else {
       if (TD.objectEle) {
         TD.style += 'display:none';
@@ -18149,6 +18163,22 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col, hiddenRows) {
     if (!TD.objectEle) {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
+    }
+  }
+  function genHiddenRowsObj(hiddenRows) {
+    var obj = {};
+    hiddenRows.forEach(function(item) {
+      obj[item] = true;
+    });
+    return obj;
+  }
+  function setSpanAttrs(TD, rowspan, colspan) {
+    if (TD.objectEle) {
+      TD.attributes.push(['rowspan', rowspan]);
+      TD.attributes.push(['colspan', colspan]);
+    } else {
+      TD.setAttribute('rowspan', rowspan);
+      TD.setAttribute('colspan', colspan);
     }
   }
 };

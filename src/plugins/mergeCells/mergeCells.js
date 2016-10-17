@@ -123,10 +123,12 @@ MergeCells.prototype.unmergeSelection = function(cellRange) {
   this.mergedCellInfoCollection.removeInfo(info.row, info.col);
 };
 
+var appliedHiddenMergeCellsInfo = {};
 MergeCells.prototype.applySpanProperties = function(TD, row, col, hiddenRows) {
   hiddenRows = hiddenRows || [];
   var info = this.mergedCellInfoCollection.getInfo(row, col),
-    endRow, rowspan, colspan;
+    r, r2, newR, rowspan, colspan, newMergeInfo, appliedInfo,
+    hiddenRowsObj;
 
   // return if TD is not exist
   if(!TD) {
@@ -138,24 +140,35 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col, hiddenRows) {
     if (info.row === row && info.col === col && !this.inOtherMergeCell(info)) {
       rowspan = info.rowspan;
       colspan = info.colspan;
-      endRow = info.row + rowspan;
+
       if (hiddenRows.length > 0) {
-        for (var i=0,l=hiddenRows.length; i<l; i++) {
-          if (hiddenRows[i] < endRow) {
-            rowspan --;
-          } else {
-            break;
+        hiddenRowsObj = genHiddenRowsObj(hiddenRows);
+        r = newR = info.row;
+        r2 = r + rowspan;
+        for (var i = r; i < r2; i++) {
+          if (hiddenRowsObj[i]) {
+            rowspan -= 1;
+            if (newR === i) {
+              newR += 1;
+            }
           }
         }
+        if (newR !== r) {
+          TD.removeAttribute('rowspan');
+          TD.removeAttribute('colspan');
+          appliedHiddenMergeCellsInfo[newR+'-'+col] = {
+            rowspan: rowspan,
+            colspan: colspan
+          };
+          return;
+        }
       }
-      if(TD.objectEle) {
-        TD.attributes.push(['rowspan', rowspan]);
-        TD.attributes.push(['colspan', colspan]);
-      } else {
-        TD.setAttribute('rowspan', rowspan);
-        TD.setAttribute('colspan', colspan);
-      }
+      setSpanAttrs(TD, rowspan, colspan);
       
+    } else if (appliedInfo = appliedHiddenMergeCellsInfo[row+'-'+col]) {
+      setSpanAttrs(TD, appliedInfo.rowspan, appliedInfo.colspan);
+      delete appliedHiddenMergeCellsInfo[row+'-'+col];
+
     } else {
       if(TD.objectEle) {
         TD.style += 'display:none';
@@ -164,15 +177,32 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col, hiddenRows) {
         TD.removeAttribute('colspan');
         TD.style.display = 'none';
       }
-      
     }
   } else {
     if(!TD.objectEle) {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
     }
-    
   }
+
+  function genHiddenRowsObj(hiddenRows) {
+    var obj = {};
+    hiddenRows.forEach(function(item){
+      obj[item] = true;
+    });
+    return obj;
+  }
+
+  function setSpanAttrs(TD, rowspan, colspan){
+    if(TD.objectEle) {
+      TD.attributes.push(['rowspan', rowspan]);
+      TD.attributes.push(['colspan', colspan]);
+    } else {
+      TD.setAttribute('rowspan', rowspan);
+      TD.setAttribute('colspan', colspan);
+    }
+  }
+
 };
 MergeCells.prototype.inOtherMergeCell = function(info) {
   var mergeCell,
