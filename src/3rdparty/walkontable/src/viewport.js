@@ -32,9 +32,17 @@ class WalkontableViewport {
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
 
+    this.documentOffsetWidth = document.documentElement.offsetWidth;
+    this.containerFillWidth = this.getContainerFillWidth();
+    this.workSpaceOffset = offset(this.wot.wtTable.TABLE);
+
     this.eventManager = new EventManager(this.wot);
     this.eventManager.addEventListener(window, 'resize', () => {
       this.clientHeight = this.getWorkspaceHeight();
+      this.documentOffsetWidth = document.documentElement.offsetWidth;
+      this.containerFillWidth = this.getContainerFillWidth();
+      this.workSpaceOffset = offset(this.wot.wtTable.TABLE);
+      this.trimmingContainerWidth = this.instance.wtOverlays.leftOverlay.trimmingContainer.clientWidth;
     });
   }
 
@@ -65,7 +73,7 @@ class WalkontableViewport {
     let trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
     let overflow;
     let stretchSetting = this.wot.getSetting('stretchH');
-    let docOffsetWidth = document.documentElement.offsetWidth;
+    let docOffsetWidth = this.documentOffsetWidth;
     let preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (preventOverflow) {
@@ -73,9 +81,9 @@ class WalkontableViewport {
     }
 
     if (Handsontable.freezeOverlays) {
-      width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
+      width = Math.min(docOffsetWidth - this.workSpaceOffset.left, docOffsetWidth);
     } else {
-      width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
+      width = Math.min(this.containerFillWidth, docOffsetWidth - this.workSpaceOffset.left, docOffsetWidth);
     }
 
     if (trimmingContainer === window && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
@@ -87,12 +95,12 @@ class WalkontableViewport {
     }
 
     if (trimmingContainer !== window) {
-      overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
+      overflow = getStyle(trimmingContainer, 'overflow');
 
       if (overflow == 'scroll' || overflow == 'hidden' || overflow == 'auto') {
         // this is used in `scroll.html`
         // TODO test me
-        return Math.max(width, trimmingContainer.clientWidth);
+        return Math.max(width, this.trimmingContainerWidth || (this.trimmingContainerWidth = trimmingContainer.clientWidth));
       }
     }
 

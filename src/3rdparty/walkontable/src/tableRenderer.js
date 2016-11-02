@@ -384,9 +384,6 @@ class WalkontableTableRenderer {
       if (TD.nodeName == 'TH') {
         TD = replaceThWithTd(TD, TR);
       }
-      if (!hasClass(TD, 'hide')) {
-        TD.className = '';
-      }
       TD.removeAttribute('style');
       this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
     }

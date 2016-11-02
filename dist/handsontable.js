@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.2.1
+ * Handsontable 1.2.3
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Oct 17 2016 14:02:07 GMT+0800 (CST)
+ * Date: Wed Nov 02 2016 14:15:08 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.2.1',
-  buildDate: 'Mon Oct 17 2016 14:02:07 GMT+0800 (CST)',
+  version: '1.2.3',
+  buildDate: 'Wed Nov 02 2016 14:15:08 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -67,7 +67,7 @@ window.Handsontable = {
 })
 ({1:[function(require,module,exports){
 //! moment.js
-//! version : 2.15.1
+//! version : 2.15.2
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -898,7 +898,7 @@ window.Handsontable = {
 
     // LOCALES
 
-    var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s+)+MMMM?/;
+    var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s)+MMMM?/;
     var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
     function localeMonths (m, format) {
         if (!m) {
@@ -4263,7 +4263,7 @@ window.Handsontable = {
     // Side effect imports
 
 
-    utils_hooks__hooks.version = '2.15.1';
+    utils_hooks__hooks.version = '2.15.2';
 
     setHookCallback(local__createLocal);
 
@@ -7797,9 +7797,6 @@ var WalkontableTableRenderer = function WalkontableTableRenderer(wtTable) {
       if (TD.nodeName == 'TH') {
         TD = replaceThWithTd(TD, TR);
       }
-      if (!hasClass(TD, 'hide')) {
-        TD.className = '';
-      }
       TD.removeAttribute('style');
       this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
     }
@@ -8022,9 +8019,16 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
   this.rowHeaderWidth = NaN;
   this.rowsVisibleCalculator = null;
   this.columnsVisibleCalculator = null;
+  this.documentOffsetWidth = document.documentElement.offsetWidth;
+  this.containerFillWidth = this.getContainerFillWidth();
+  this.workSpaceOffset = offset(this.wot.wtTable.TABLE);
   this.eventManager = new EventManager(this.wot);
   this.eventManager.addEventListener(window, 'resize', (function() {
     $__5.clientHeight = $__5.getWorkspaceHeight();
+    $__5.documentOffsetWidth = document.documentElement.offsetWidth;
+    $__5.containerFillWidth = $__5.getContainerFillWidth();
+    $__5.workSpaceOffset = offset($__5.wot.wtTable.TABLE);
+    $__5.trimmingContainerWidth = $__5.instance.wtOverlays.leftOverlay.trimmingContainer.clientWidth;
   }));
 };
 ($traceurRuntime.createClass)(WalkontableViewport, {
@@ -8046,23 +8050,23 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
     var trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
     var overflow;
     var stretchSetting = this.wot.getSetting('stretchH');
-    var docOffsetWidth = document.documentElement.offsetWidth;
+    var docOffsetWidth = this.documentOffsetWidth;
     var preventOverflow = this.wot.getSetting('preventOverflow');
     if (preventOverflow) {
       return outerWidth(this.instance.wtTable.wtRootElement);
     }
     if (Handsontable.freezeOverlays) {
-      width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
+      width = Math.min(docOffsetWidth - this.workSpaceOffset.left, docOffsetWidth);
     } else {
-      width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
+      width = Math.min(this.containerFillWidth, docOffsetWidth - this.workSpaceOffset.left, docOffsetWidth);
     }
     if (trimmingContainer === window && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
       return document.documentElement.clientWidth;
     }
     if (trimmingContainer !== window) {
-      overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
+      overflow = getStyle(trimmingContainer, 'overflow');
       if (overflow == 'scroll' || overflow == 'hidden' || overflow == 'auto') {
-        return Math.max(width, trimmingContainer.clientWidth);
+        return Math.max(width, this.trimmingContainerWidth || (this.trimmingContainerWidth = trimmingContainer.clientWidth));
       }
     }
     if (stretchSetting === 'none' || !stretchSetting) {
@@ -19895,16 +19899,13 @@ function TableView(instance) {
     },
     columnWidth: instance.getColWidth,
     rowHeight: instance.getRowHeight,
-    cellRenderer: function(row, col, TD, stringElement) {
+    cellRenderer: function(row, col, TD) {
       var prop = that.instance.colToProp(col),
           cellProperties = that.instance.getCellMeta(row, col),
           renderer = that.instance.getCellRenderer(cellProperties);
       var value = that.instance.getDataAtRowProp(row, prop);
-      var renderedCell = renderer(that.instance, TD, row, col, prop, value, cellProperties, stringElement);
-      Handsontable.hooks.run(that.instance, 'afterRenderer', renderedCell || TD, row, col, prop, value, cellProperties, stringElement);
-      if (stringElement) {
-        return renderedCell;
-      }
+      var renderedCell = renderer(that.instance, TD, row, col, prop, value, cellProperties);
+      Handsontable.hooks.run(that.instance, 'afterRenderer', renderedCell || TD, row, col, prop, value, cellProperties);
     },
     selections: selections,
     hideBorderOnMouseDownOver: function() {
