@@ -1065,10 +1065,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * edit by xp 2015.11.27
    */
   function updateColWidthAndRowHeight(action, index, amount) {
-    var commonCell = priv.cellSettings[0][0] || priv.cellSettings[1][1],
-        colWidths = commonCell.colWidths,
-        rowHeights = commonCell.rowHeights,
-        defaultHeight = undefined,
+    var settings = priv.settings,
+        colWidths = settings.colWidths,
+        rowHeights = settings.rowHeights,
+        defaultHeight,
         defaultWidth = instance.getSettings().defaultColWidth || 100;
 
     if(typeof rowHeights !== 'object' || typeof colWidths !== 'object') {
