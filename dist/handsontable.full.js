@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.2.3
+ * Handsontable 1.2.4
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 02 2016 14:15:08 GMT+0800 (CST)
+ * Date: Fri Nov 04 2016 10:39:31 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.2.3',
-  buildDate: 'Wed Nov 02 2016 14:15:08 GMT+0800 (CST)',
+  version: '1.2.4',
+  buildDate: 'Fri Nov 04 2016 10:39:31 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -67,7 +67,7 @@ window.Handsontable = {
 })
 ({1:[function(require,module,exports){
 //! moment.js
-//! version : 2.15.2
+//! version : 2.15.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -898,7 +898,7 @@ window.Handsontable = {
 
     // LOCALES
 
-    var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s)+MMMM?/;
+    var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s+)+MMMM?/;
     var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
     function localeMonths (m, format) {
         if (!m) {
@@ -4263,7 +4263,7 @@ window.Handsontable = {
     // Side effect imports
 
 
-    utils_hooks__hooks.version = '2.15.2';
+    utils_hooks__hooks.version = '2.15.1';
 
     setHookCallback(local__createLocal);
 
@@ -9594,6 +9594,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       selection.refreshBorders(null, true);
     }
     Handsontable.noRefresh = false;
+  };
+  this.updateSettingsWithNoRefresh = function(settings) {
+    for (var i in settings) {
+      GridSettings.prototype[i] = settings[i];
+    }
   };
   this.getValue = function() {
     var sel = instance.getSelected();

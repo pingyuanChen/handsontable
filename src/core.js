@@ -1731,9 +1731,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           // Update settings
           if (!init && settings.hasOwnProperty(i)) {
             GridSettings.prototype[i] = settings[i];
-            // if (['hiddenRows', 'filterRange'].indexOf(i) > -1) {
-            //   instance.view.settings.hiddenRows = settings[i];
-            // }
           }
         }
       }
@@ -1838,6 +1835,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     }
 
     Handsontable.noRefresh = false;
+  };
+
+  this.updateSettingsWithNoRefresh = function(settings) {
+    for (var i in settings) {
+      GridSettings.prototype[i] = settings[i];
+    }
   };
 
   /**
