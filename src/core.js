@@ -1251,7 +1251,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       selection.refreshBorders(null, true);
     }
     instance.view.wt.wtOverlays.adjustElementsSize();
-    Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
+    setTimeout(() => {
+      Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
+    }, 0);
   }
 
   this.validateCell = function(value, cellProperties, callback, source) {
