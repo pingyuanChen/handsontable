@@ -281,6 +281,7 @@ function TableView(instance) {
       var headerLevel;
       var headerColspan;
       var editor, editorVal;
+      var selectedRange = instance.getSelectedRange();
 
       editor = instance.getActiveEditor();
       editorVal = editor && editor.getValue();
@@ -304,6 +305,17 @@ function TableView(instance) {
         } else if (event.shiftKey) {
           if (coords.row >= 0 && coords.col >= 0) {
             instance.selection.setRangeEnd(coords);
+          } else if (coords.row < 0 && coords.col < 0) {
+            instance.selection.selectAll();
+          } else {
+            if (coords.row < 0) {
+              instance.selection.setSelectedHeaders(false, true);
+              instance.selectCell(0, selectedRange.from.col, instance.countRows() - 1, coords.col);
+            }
+            if (coords.col < 0) {
+              instance.selection.setSelectedHeaders(true, false);
+              instance.selectCell(selectedRange.from.row, 0, coords.row, instance.countCols() - 1);
+            }
           }
         } else {
 
@@ -364,42 +376,27 @@ function TableView(instance) {
      },*/
     onCellMouseOver: function(event, coords, TD, wt) {
       that.activeWt = wt;
-      if (coords.row >= 0 && coords.col >= 0) { //is not a header
-        if (isMouseDown) {
-          /*if (that.settings.fragmentSelection === 'single') {
-           clearTextSelection(); //otherwise text selection blinks during multiple cells selection
-           }*/
-          instance.selection.setRangeEnd(coords);
-        }
+      var setRangeEnd = instance.selection.setRangeEnd;
+      var setSelectedHeaders = instance.selection.setSelectedHeaders;
+      var selectedHeader = instance.selection.selectedHeader;
+
+      if (!isMouseDown) {
+        return;
+      }
+
+      if (selectedHeader.cols) {
+        setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+        setSelectedHeaders(false, true);
+      } else if (selectedHeader.rows) {
+        setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+        setSelectedHeaders(true, false);
       } else {
-        if (isMouseDown) {
-          // multi select columns
-          if (coords.row < 0) {
-            if (instance.selection.selectedHeader.cols) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-              instance.selection.setSelectedHeaders(false, true);
-
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
-            }
-
-          }
-
-          // multi select rows
-          if (coords.col < 0) {
-            if (instance.selection.selectedHeader.rows) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-              instance.selection.setSelectedHeaders(true, false);
-
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
-            }
-          }
-        }
+        setRangeEnd(coords);
       }
 
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);
       that.activeWt = that.wt;
+
     },
     onCellCornerMouseDown: function(event) {
       event.preventDefault();
