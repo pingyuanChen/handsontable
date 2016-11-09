@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Nov 07 2016 21:13:30 GMT+0800 (CST)
+ * Date: Wed Nov 09 2016 16:51:35 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '1.2.6',
-  buildDate: 'Mon Nov 07 2016 21:13:30 GMT+0800 (CST)',
+  buildDate: 'Wed Nov 09 2016 16:51:35 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -67,7 +67,7 @@ window.Handsontable = {
 })
 ({1:[function(require,module,exports){
 //! moment.js
-//! version : 2.15.1
+//! version : 2.15.2
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -898,7 +898,7 @@ window.Handsontable = {
 
     // LOCALES
 
-    var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s+)+MMMM?/;
+    var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s)+MMMM?/;
     var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
     function localeMonths (m, format) {
         if (!m) {
@@ -4263,7 +4263,7 @@ window.Handsontable = {
     // Side effect imports
 
 
-    utils_hooks__hooks.version = '2.15.1';
+    utils_hooks__hooks.version = '2.15.2';
 
     setHookCallback(local__createLocal);
 
@@ -20617,7 +20617,7 @@ CopyPasteClass.prototype.copyable = function(string) {
     rowSet = [];
     for (var col = 0,
         len = parsedStr[row].length; col < len; col++) {
-      rowItem = $(parsedStr[row][col]).text();
+      rowItem = getText(parsedStr[row][col]);
       rowSet.push(rowItem);
     }
     dataSet.push(rowSet);
@@ -20625,6 +20625,14 @@ CopyPasteClass.prototype.copyable = function(string) {
   this.elTextarea.htmlValue = string;
   this.elTextarea.value = SheetClip.stringify(dataSet);
   this.selectNodeText(this.elTextarea);
+  function getText(str) {
+    if (/(<(.*)>|&(.*);)/.test(str)) {
+      var div = document.createElement('div');
+      div.innerHTML = str;
+      return div.textContent || div.innerText || '';
+    }
+    return str;
+  }
 };
 CopyPasteClass.prototype.onCut = function(callback) {
   this.cutCallbacks.push(callback);
