@@ -380,18 +380,16 @@ function TableView(instance) {
       var setSelectedHeaders = instance.selection.setSelectedHeaders;
       var selectedHeader = instance.selection.selectedHeader;
 
-      if (!isMouseDown) {
-        return;
-      }
-
-      if (selectedHeader.cols) {
-        setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-        setSelectedHeaders(false, true);
-      } else if (selectedHeader.rows) {
-        setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-        setSelectedHeaders(true, false);
-      } else {
-        setRangeEnd(coords);
+      if (isMouseDown) {
+        if (selectedHeader.cols) {
+          setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+          setSelectedHeaders(false, true);
+        } else if (selectedHeader.rows) {
+          setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+          setSelectedHeaders(true, false);
+        } else {
+          setRangeEnd(coords);
+        }
       }
 
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);

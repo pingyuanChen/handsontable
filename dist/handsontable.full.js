@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 09 2016 17:31:24 GMT+0800 (CST)
+ * Date: Wed Nov 09 2016 18:00:37 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
   version: '1.2.8',
-  buildDate: 'Wed Nov 09 2016 17:31:24 GMT+0800 (CST)',
+  buildDate: 'Wed Nov 09 2016 18:00:37 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -20004,17 +20004,16 @@ function TableView(instance) {
       var setRangeEnd = instance.selection.setRangeEnd;
       var setSelectedHeaders = instance.selection.setSelectedHeaders;
       var selectedHeader = instance.selection.selectedHeader;
-      if (!isMouseDown) {
-        return;
-      }
-      if (selectedHeader.cols) {
-        setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-        setSelectedHeaders(false, true);
-      } else if (selectedHeader.rows) {
-        setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-        setSelectedHeaders(true, false);
-      } else {
-        setRangeEnd(coords);
+      if (isMouseDown) {
+        if (selectedHeader.cols) {
+          setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+          setSelectedHeaders(false, true);
+        } else if (selectedHeader.rows) {
+          setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+          setSelectedHeaders(true, false);
+        } else {
+          setRangeEnd(coords);
+        }
       }
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);
       that.activeWt = that.wt;
