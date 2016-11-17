@@ -152,15 +152,15 @@ function ManualColumnMove() {
         hideHandleAndGuide();
         pressed = false;
 
-        createPositionData(instance.manualColumnPositions, instance.countCols());
-        instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
+        // createPositionData(instance.manualColumnPositions, instance.countCols());
+        // instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
 
         Handsontable.hooks.run(instance, 'beforeColumnMove', startCol, endCol);
 
-        instance.forceFullRender = true;
-        instance.view.render(); // updates all
+        // instance.forceFullRender = true;
+        // instance.view.render(); // updates all
 
-        saveManualColumnPositions.call(instance);
+        // saveManualColumnPositions.call(instance);
 
         Handsontable.hooks.run(instance, 'afterColumnMove', startCol, endCol);
 
