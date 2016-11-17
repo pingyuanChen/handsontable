@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.2.6
+ * Handsontable 1.2.8
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 09 2016 16:51:35 GMT+0800 (CST)
+ * Date: Thu Nov 17 2016 14:49:13 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.2.6',
-  buildDate: 'Wed Nov 09 2016 16:51:35 GMT+0800 (CST)',
+  version: '1.2.8',
+  buildDate: 'Thu Nov 17 2016 14:49:13 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -17131,12 +17131,7 @@ function ManualColumnMove() {
       if (pressed) {
         hideHandleAndGuide();
         pressed = false;
-        createPositionData(instance.manualColumnPositions, instance.countCols());
-        instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
         Handsontable.hooks.run(instance, 'beforeColumnMove', startCol, endCol);
-        instance.forceFullRender = true;
-        instance.view.render();
-        saveManualColumnPositions.call(instance);
         Handsontable.hooks.run(instance, 'afterColumnMove', startCol, endCol);
         setupHandlePosition.call(instance, currentTH);
       }
@@ -17666,12 +17661,7 @@ function ManualRowMove() {
       if (pressed) {
         hideHandleAndGuide();
         pressed = false;
-        createPositionData(instance.manualRowPositions, instance.countRows());
-        instance.manualRowPositions.splice(endRow, 0, instance.manualRowPositions.splice(startRow, 1)[0]);
         Handsontable.hooks.run(instance, 'beforeRowMove', startRow, endRow);
-        instance.forceFullRender = true;
-        instance.view.render();
-        saveManualRowPositions.call(instance);
         Handsontable.hooks.run(instance, 'afterRowMove', startRow, endRow);
         setupHandlePosition.call(instance, currentTH);
       }
@@ -19926,6 +19916,7 @@ function TableView(instance) {
       var headerColspan;
       var editor,
           editorVal;
+      var selectedRange = instance.getSelectedRange();
       editor = instance.getActiveEditor();
       editorVal = editor && editor.getValue();
       if (editorVal && isFormula(editorVal)) {
@@ -19943,6 +19934,17 @@ function TableView(instance) {
         } else if (event.shiftKey) {
           if (coords.row >= 0 && coords.col >= 0) {
             instance.selection.setRangeEnd(coords);
+          } else if (coords.row < 0 && coords.col < 0) {
+            instance.selection.selectAll();
+          } else {
+            if (coords.row < 0) {
+              instance.selection.setSelectedHeaders(false, true);
+              instance.selectCell(0, selectedRange.from.col, instance.countRows() - 1, coords.col);
+            }
+            if (coords.col < 0) {
+              instance.selection.setSelectedHeaders(true, false);
+              instance.selectCell(selectedRange.from.row, 0, coords.row, instance.countCols() - 1);
+            }
           }
         } else {
           if (coords.row < 0 && coords.col < 0) {
@@ -19989,28 +19991,18 @@ function TableView(instance) {
     },
     onCellMouseOver: function(event, coords, TD, wt) {
       that.activeWt = wt;
-      if (coords.row >= 0 && coords.col >= 0) {
-        if (isMouseDown) {
-          instance.selection.setRangeEnd(coords);
-        }
-      } else {
-        if (isMouseDown) {
-          if (coords.row < 0) {
-            if (instance.selection.selectedHeader.cols) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
-              instance.selection.setSelectedHeaders(false, true);
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
-            }
-          }
-          if (coords.col < 0) {
-            if (instance.selection.selectedHeader.rows) {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
-              instance.selection.setSelectedHeaders(true, false);
-            } else {
-              instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, coords.col));
-            }
-          }
+      var setRangeEnd = instance.selection.setRangeEnd;
+      var setSelectedHeaders = instance.selection.setSelectedHeaders;
+      var selectedHeader = instance.selection.selectedHeader;
+      if (isMouseDown) {
+        if (selectedHeader.cols) {
+          setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+          setSelectedHeaders(false, true);
+        } else if (selectedHeader.rows) {
+          setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+          setSelectedHeaders(true, false);
+        } else {
+          setRangeEnd(coords);
         }
       }
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);
