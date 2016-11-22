@@ -29,10 +29,12 @@ function ManualRowMove() {
     currentTH,
     handle = document.createElement('DIV'),
     guide = document.createElement('DIV'),
+    border = document.createElement('DIV'),
     eventManager = eventManagerObject(this);
 
   handle.className = 'manualRowMover';
   guide.className = 'manualRowMoverGuide';
+  border.className = 'manualRowMoverBorder';
 
   var saveManualRowPositions = function() {
     var instance = this;
@@ -43,8 +45,28 @@ function ManualRowMove() {
     var instance = this,
       storedState = {};
     Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualRowPositions', storedState);
+    instance.addHook('selectedHeaderChange', function (rowSelected, colSelected) {
+      if (rowSelected) {
+        setTimeout(function() {
+          showHandle(instance);
+        }, 0);
+      } else {
+        hideHandleAndGuide();
+      }
+    });
     return storedState.value;
   };
+
+  function getSelectedTh(instance) {
+    var selectedRange = instance.getSelected();
+    return instance.view.wt.wtTable.getRowHeader(selectedRange[0]);
+  }
+
+  function showHandle(instance) {
+    var th = getSelectedTh(instance);
+    setupHandlePosition.call(instance, th);
+    addClass(handle, 'active');
+  }
 
   function setupHandlePosition(TH) {
     var instance = this;
@@ -57,24 +79,29 @@ function ManualRowMove() {
       startOffset = box.top;
       handle.style.top = startOffset + 'px';
       handle.style.left = box.left + 'px';
+      handle.style.height = box.height + 'px';
+
+      border.style.top = startOffset + 'px';
+      border.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
+
       instance.rootElement.appendChild(handle);
+      instance.rootElement.appendChild(border);
     }
   }
 
   function refreshHandlePosition(TH, delta) {
     var box = TH.getBoundingClientRect();
-    var handleHeight = 6;
+    var top = box.top;
     if (delta > 0) {
-      handle.style.top = (box.top + box.height - handleHeight) + 'px';
-    } else {
-      handle.style.top = box.top + 'px';
+      top += box.height;
     }
+    handle.style.top = top + 'px';
+    border.style.top = top + 'px';
   }
 
   function setupGuidePosition() {
     var instance = this;
-    addClass(handle, 'active');
-    addClass(guide, 'active');
+    showHandleAndGuide();
     var box = currentTH.getBoundingClientRect();
     guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
     guide.style.height = box.height + 'px';
@@ -87,9 +114,16 @@ function ManualRowMove() {
     guide.style.top = startOffset + diff + 'px';
   }
 
+  function showHandleAndGuide() {
+    addClass(handle, 'active');
+    addClass(guide, 'active');
+    addClass(border, 'active');
+  }
+
   function hideHandleAndGuide() {
     removeClass(handle, 'active');
     removeClass(guide, 'active');
+    removeClass(border, 'active');
   }
 
   var checkRowHeader = function(element) {
@@ -104,12 +138,14 @@ function ManualRowMove() {
     return false;
   };
 
-  var getTHFromTargetElement = function(element) {
+  var getTHFromTargetElement = function(element, pressed) {
     if (element.tagName != 'TABLE') {
       if (element.tagName == 'TH') {
         return element;
+      } else if (element.tagName == 'TD' && pressed) {
+        return element.parentNode.firstChild;
       } else {
-        return getTHFromTargetElement(element.parentNode);
+        return getTHFromTargetElement(element.parentNode, pressed);
       }
     }
     return null;
@@ -117,18 +153,18 @@ function ManualRowMove() {
 
   var bindEvents = function() {
     var instance = this;
+    var selectedHeader = instance.selection.selectedHeader;
     var pressed;
 
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
-      if (checkRowHeader(e.target)) {
-        var th = getTHFromTargetElement(e.target);
+      if (selectedHeader.rows && !selectedHeader.cols && checkRowHeader(e.target)) {
+        var th = getTHFromTargetElement(e.target, pressed);
         if (th) {
-          if (pressed) {
-            endRow = instance.view.wt.wtTable.getCoords(th).row;
-            refreshHandlePosition(th, endRow - startRow);
-          } else {
-            setupHandlePosition.call(instance, th);
+          endRow = instance.view.wt.wtTable.getCoords(th).row;
+          if (!pressed) {
+            th = getSelectedTh(instance);
           }
+          refreshHandlePosition(th, endRow - startRow);
         }
       }
     });
@@ -164,6 +200,10 @@ function ManualRowMove() {
         // instance.view.render(); // updates all
 
         // saveManualRowPositions.call(instance);
+
+        // 选中移动后的结果行
+        instance.selection.setSelectedHeaders(true, false);
+        instance.selectCell(endRow, 0, endRow, instance.countCols() - 1);
 
         Handsontable.hooks.run(instance, 'afterRowMove', startRow, endRow);
 

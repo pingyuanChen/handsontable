@@ -22,10 +22,12 @@ export {ManualColumnMove};
 function ManualColumnMove() {
   var startCol, endCol, startX, startOffset, currentCol, instance, currentTH, handle = document.createElement('DIV'),
     guide = document.createElement('DIV'),
+    border = document.createElement('DIV'),
     eventManager = eventManagerObject(this);
 
   handle.className = 'manualColumnMover';
   guide.className = 'manualColumnMoverGuide';
+  border.className = 'manualColumnMoverBorder';
 
   var saveManualColumnPositions = function() {
     var instance = this;
@@ -36,8 +38,29 @@ function ManualColumnMove() {
     var instance = this;
     var storedState = {};
     Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualColumnPositions', storedState);
+    instance.addHook('selectedHeaderChange', function (rowSelected, colSelected) {
+      if (colSelected) {
+        setTimeout(function() {
+          showHandle(instance);
+        }, 0);
+      } else {
+        hideHandleAndGuide();
+      }
+    });
     return storedState.value;
   };
+
+  function getSelectedTh(instance) {
+    var selectedRange = instance.getSelected();
+    return instance.view.wt.wtTable.getColumnHeader(selectedRange[1]);
+  }
+
+  function showHandle(instance) {
+    var th = getSelectedTh(instance);
+    setupHandlePosition.call(instance, th);
+    addClass(handle, 'active');
+  }
+
 
   function setupHandlePosition(TH) {
     instance = this;
@@ -50,24 +73,29 @@ function ManualColumnMove() {
       startOffset = box.left;
       handle.style.top = box.top + 'px';
       handle.style.left = startOffset + 'px';
+      handle.style.width = box.width + 'px';
+
+      border.style.top = box.top + 'px';
+      border.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
+
       instance.rootElement.appendChild(handle);
+      instance.rootElement.appendChild(border);
     }
   }
 
   function refreshHandlePosition(TH, delta) {
     var box = TH.getBoundingClientRect();
-    var handleWidth = 6;
+    var left = box.left;
     if (delta > 0) {
-      handle.style.left = (box.left + box.width - handleWidth) + 'px';
-    } else {
-      handle.style.left = box.left + 'px';
+      left += box.width;
     }
+    handle.style.left = left + 'px';
+    border.style.left = left + 'px';
   }
 
   function setupGuidePosition() {
     var instance = this;
-    addClass(handle, 'active');
-    addClass(guide, 'active');
+    showHandleAndGuide();
     var box = currentTH.getBoundingClientRect();
     guide.style.width = box.width + 'px';
     guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
@@ -80,14 +108,21 @@ function ManualColumnMove() {
     guide.style.left = startOffset + diff + 'px';
   }
 
+  function showHandleAndGuide() {
+    addClass(handle, 'active');
+    addClass(guide, 'active');
+    addClass(border, 'active');
+  }
+
   function hideHandleAndGuide() {
     removeClass(handle, 'active');
     removeClass(guide, 'active');
+    removeClass(border, 'active');
   }
 
   var checkColumnHeader = function(element) {
     if (element.tagName != 'BODY') {
-      if (element.parentNode.tagName == 'THEAD') {
+      if (element.parentNode.tagName == 'THEAD' || element.parentNode.tagName == 'TBODY') {
         return true;
       } else {
         element = element.parentNode;
@@ -97,12 +132,14 @@ function ManualColumnMove() {
     return false;
   };
 
-  var getTHFromTargetElement = function(element) {
+  var getTHFromTargetElement = function(element, pressed, instance) {
     if (element.tagName != 'TABLE') {
       if (element.tagName == 'TH') {
         return element;
+      } else if (element.tagName == 'TD' && pressed) {
+        return instance.view.wt.wtTable.getColumnHeader($(element).index() - 1);
       } else {
-        return getTHFromTargetElement(element.parentNode);
+        return getTHFromTargetElement(element.parentNode, pressed);
       }
     }
     return null;
@@ -111,21 +148,21 @@ function ManualColumnMove() {
   var bindEvents = function() {
 
     var instance = this;
+    var selectedHeader = instance.selection.selectedHeader;
     var pressed;
 
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
-      if (checkColumnHeader(e.target)) {
-        var th = getTHFromTargetElement(e.target);
+      if (!selectedHeader.rows && selectedHeader.cols && checkColumnHeader(e.target)) {
+        var th = getTHFromTargetElement(e.target, pressed, instance);
         if (th) {
-          if (pressed) {
-            var col = instance.view.wt.wtTable.getCoords(th).col;
-            if (col >= 0) { // not TH above row header
-              endCol = col;
-              refreshHandlePosition(e.target, endCol - startCol);
+          var col = instance.view.wt.wtTable.getCoords(th).col;
+          if (col >= 0) { // not TH above row header
+            endCol = col;
+            if (!pressed) {
+              th = getSelectedTh(instance);
             }
-          } else {
-            setupHandlePosition.call(instance, th);
-          }
+            refreshHandlePosition(th, endCol - startCol);
+          }          
         }
       }
     });
@@ -159,6 +196,10 @@ function ManualColumnMove() {
 
         // instance.forceFullRender = true;
         // instance.view.render(); // updates all
+
+        // 选中移动后的结果行
+        instance.selection.setSelectedHeaders(false, true);
+        instance.selectCell(0, endCol, instance.countRows() - 1, endCol);
 
         // saveManualColumnPositions.call(instance);
 
