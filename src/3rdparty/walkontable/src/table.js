@@ -348,9 +348,9 @@ class WalkontableTable {
    * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have row headers`
    */
   getRowHeader(row) {
-    if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-      return null;
-    }
+    // if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
+    //   return null;
+    // }
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
 
     if (TR) {

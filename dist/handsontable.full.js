@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.2.11
+ * Handsontable 1.2.12
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 23 2016 12:05:05 GMT+0800 (CST)
+ * Date: Wed Nov 23 2016 16:31:28 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.2.11',
-  buildDate: 'Wed Nov 23 2016 12:05:05 GMT+0800 (CST)',
+  version: '1.2.12',
+  buildDate: 'Wed Nov 23 2016 16:31:28 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -7384,9 +7384,6 @@ var WalkontableTable = function WalkontableTable(wotInstance, settings) {
     }
   },
   getRowHeader: function(row) {
-    if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-      return null;
-    }
     var TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
     if (TR) {
       return TR.childNodes[0];
@@ -17055,6 +17052,9 @@ function ManualColumnMove() {
     addClass(handle, 'active');
   }
   function setupHandlePosition(TH) {
+    if (!TH) {
+      return;
+    }
     instance = this;
     currentTH = TH;
     var col = this.view.wt.wtTable.getCoords(TH).col;
@@ -17062,16 +17062,18 @@ function ManualColumnMove() {
       currentCol = col;
       var box = currentTH.getBoundingClientRect();
       startOffset = box.left;
-      handle.style.top = box.top + 'px';
       handle.style.left = startOffset + 'px';
       handle.style.width = box.width + 'px';
-      border.style.top = box.top + 'px';
+      border.style.left = startOffset + 'px';
       border.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
       instance.rootElement.appendChild(handle);
       instance.rootElement.appendChild(border);
     }
   }
   function refreshHandlePosition(TH, delta) {
+    if (!TH) {
+      return;
+    }
     var box = TH.getBoundingClientRect();
     var left = box.left;
     if (delta > 0) {
@@ -17121,7 +17123,8 @@ function ManualColumnMove() {
       if (element.tagName == 'TH') {
         return element;
       } else if (element.tagName == 'TD' && pressed) {
-        return instance.view.wt.wtTable.getColumnHeader($(element).index() - 1);
+        return instance.view.wt.wtTable.getColumnHeader(instance.view.wt.wtTable.getCoords(element).col);
+        ;
       } else {
         return getTHFromTargetElement(element.parentNode, pressed);
       }
@@ -17626,6 +17629,9 @@ function ManualRowMove() {
     addClass(handle, 'active');
   }
   function setupHandlePosition(TH) {
+    if (!TH) {
+      return;
+    }
     var instance = this;
     currentTH = TH;
     var row = this.view.wt.wtTable.getCoords(TH).row;
@@ -17634,7 +17640,6 @@ function ManualRowMove() {
       var box = currentTH.getBoundingClientRect();
       startOffset = box.top;
       handle.style.top = startOffset + 'px';
-      handle.style.left = box.left + 'px';
       handle.style.height = box.height + 'px';
       border.style.top = startOffset + 'px';
       border.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
@@ -17643,6 +17648,9 @@ function ManualRowMove() {
     }
   }
   function refreshHandlePosition(TH, delta) {
+    if (!TH) {
+      return;
+    }
     var box = TH.getBoundingClientRect();
     var top = box.top;
     if (delta > 0) {
