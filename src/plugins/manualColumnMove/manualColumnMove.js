@@ -87,7 +87,7 @@ function ManualColumnMove() {
 
   function refreshHandlePosition(TH, delta) {
     if (!TH) {
-      return;
+      return handle.style.left = -1000 + 'px';
     }
     var box = TH.getBoundingClientRect();
     var left = box.left;
