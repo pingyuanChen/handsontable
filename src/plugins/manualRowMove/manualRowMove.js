@@ -118,12 +118,14 @@ function ManualRowMove() {
     addClass(handle, 'active');
     addClass(guide, 'active');
     addClass(border, 'active');
+    addClass(document.body, 'pressed');
   }
 
   function hideHandleAndGuide() {
     removeClass(handle, 'active');
     removeClass(guide, 'active');
     removeClass(border, 'active');
+    removeClass(document.body, 'pressed');
   }
 
   var checkRowHeader = function(element) {
