@@ -151,7 +151,7 @@ function ManualColumnMove() {
 
     var instance = this;
     var selectedHeader = instance.selection.selectedHeader;
-    var pressed;
+    var pressed, delta;
 
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
       if (!selectedHeader.rows && selectedHeader.cols && checkColumnHeader(e.target)) {
@@ -160,10 +160,12 @@ function ManualColumnMove() {
           var col = instance.view.wt.wtTable.getCoords(th).col;
           if (col >= 0) { // not TH above row header
             endCol = col;
+            delta = endCol - startCol;
             if (!pressed) {
               th = getSelectedTh(instance);
+              delta = 0;
             }
-            refreshHandlePosition(th, endCol - startCol);
+            refreshHandlePosition(th, delta);
           }          
         }
       }

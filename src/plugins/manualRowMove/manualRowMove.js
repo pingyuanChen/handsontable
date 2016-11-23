@@ -156,17 +156,19 @@ function ManualRowMove() {
   var bindEvents = function() {
     var instance = this;
     var selectedHeader = instance.selection.selectedHeader;
-    var pressed;
+    var pressed, delta;
 
     eventManager.addEventListener(instance.rootElement, 'mouseover', function(e) {
       if (selectedHeader.rows && !selectedHeader.cols && checkRowHeader(e.target)) {
         var th = getTHFromTargetElement(e.target, pressed);
         if (th) {
           endRow = instance.view.wt.wtTable.getCoords(th).row;
+          delta = endRow - startRow;
           if (!pressed) {
             th = getSelectedTh(instance);
+            delta = 0;
           }
-          refreshHandlePosition(th, endRow - startRow);
+          refreshHandlePosition(th, delta);
         }
       }
     });
