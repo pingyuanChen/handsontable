@@ -595,6 +595,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     setSelectedHeaders: function(rows, cols) {
       instance.selection.selectedHeader.rows = rows;
       instance.selection.selectedHeader.cols = cols;
+      Handsontable.hooks.run(instance, 'selectedHeaderChange', rows, cols);
     },
 
     /**
