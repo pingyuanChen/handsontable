@@ -93,7 +93,7 @@ function ManualRowMove() {
 
   function refreshHandlePosition(TH, delta) {
     if (!TH) {
-      return;
+      return handle.style.top = -1000 + 'px';
     }
     var box = TH.getBoundingClientRect();
     var top = box.top;
