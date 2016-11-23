@@ -69,6 +69,9 @@ function ManualRowMove() {
   }
 
   function setupHandlePosition(TH) {
+    if (!TH) {
+      return;
+    }
     var instance = this;
     currentTH = TH;
 
@@ -78,7 +81,6 @@ function ManualRowMove() {
       var box = currentTH.getBoundingClientRect();
       startOffset = box.top;
       handle.style.top = startOffset + 'px';
-      handle.style.left = box.left + 'px';
       handle.style.height = box.height + 'px';
 
       border.style.top = startOffset + 'px';
@@ -90,6 +92,9 @@ function ManualRowMove() {
   }
 
   function refreshHandlePosition(TH, delta) {
+    if (!TH) {
+      return;
+    }
     var box = TH.getBoundingClientRect();
     var top = box.top;
     if (delta > 0) {

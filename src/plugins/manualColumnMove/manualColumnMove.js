@@ -63,6 +63,9 @@ function ManualColumnMove() {
 
 
   function setupHandlePosition(TH) {
+    if (!TH) {
+      return;
+    }
     instance = this;
     currentTH = TH;
 
@@ -71,11 +74,10 @@ function ManualColumnMove() {
       currentCol = col;
       var box = currentTH.getBoundingClientRect();
       startOffset = box.left;
-      handle.style.top = box.top + 'px';
       handle.style.left = startOffset + 'px';
       handle.style.width = box.width + 'px';
 
-      border.style.top = box.top + 'px';
+      border.style.left = startOffset + 'px';
       border.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
 
       instance.rootElement.appendChild(handle);
@@ -84,6 +86,9 @@ function ManualColumnMove() {
   }
 
   function refreshHandlePosition(TH, delta) {
+    if (!TH) {
+      return;
+    }
     var box = TH.getBoundingClientRect();
     var left = box.left;
     if (delta > 0) {
@@ -139,7 +144,7 @@ function ManualColumnMove() {
       if (element.tagName == 'TH') {
         return element;
       } else if (element.tagName == 'TD' && pressed) {
-        return instance.view.wt.wtTable.getColumnHeader($(element).index() - 1);
+        return instance.view.wt.wtTable.getColumnHeader(instance.view.wt.wtTable.getCoords(element).col);;
       } else {
         return getTHFromTargetElement(element.parentNode, pressed);
       }
