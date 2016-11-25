@@ -1,5 +1,5 @@
 /*!
- * Handsontable 1.2.13
+ * Handsontable 1.2.14
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright (c) 2012-2014 Marcin Warpechowski
@@ -7,13 +7,13 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 23 2016 23:59:17 GMT+0800 (CST)
+ * Date: Fri Nov 25 2016 12:47:54 GMT+0800 (CST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 window.Handsontable = {
-  version: '1.2.13',
-  buildDate: 'Wed Nov 23 2016 23:59:17 GMT+0800 (CST)',
+  version: '1.2.14',
+  buildDate: 'Fri Nov 25 2016 12:47:54 GMT+0800 (CST)',
 };
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Handsontable = f()}})(function(){var define,module,exports;return (function init(modules, cache, entry) {
   (function outer (modules, cache, entry) {
@@ -17085,7 +17085,9 @@ function ManualColumnMove() {
   function setupGuidePosition() {
     var instance = this;
     showHandleAndGuide();
+    currentTH = getSelectedTh(instance) || currentTH;
     var box = currentTH.getBoundingClientRect();
+    startOffset = box.left;
     guide.style.width = box.width + 'px';
     guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
     guide.style.top = handle.style.top;
@@ -17662,7 +17664,9 @@ function ManualRowMove() {
   function setupGuidePosition() {
     var instance = this;
     showHandleAndGuide();
+    currentTH = getSelectedTh(instance) || currentTH;
     var box = currentTH.getBoundingClientRect();
+    startOffset = box.top;
     guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
     guide.style.height = box.height + 'px';
     guide.style.top = startOffset + 'px';
