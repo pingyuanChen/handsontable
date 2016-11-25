@@ -107,7 +107,9 @@ function ManualRowMove() {
   function setupGuidePosition() {
     var instance = this;
     showHandleAndGuide();
+    currentTH = getSelectedTh(instance) || currentTH;
     var box = currentTH.getBoundingClientRect();
+    startOffset = box.top;
     guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
     guide.style.height = box.height + 'px';
     guide.style.top = startOffset + 'px';

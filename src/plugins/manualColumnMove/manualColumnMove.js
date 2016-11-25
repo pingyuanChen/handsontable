@@ -101,7 +101,9 @@ function ManualColumnMove() {
   function setupGuidePosition() {
     var instance = this;
     showHandleAndGuide();
+    currentTH = getSelectedTh(instance) || currentTH;
     var box = currentTH.getBoundingClientRect();
+    startOffset = box.left;
     guide.style.width = box.width + 'px';
     guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
     guide.style.top = handle.style.top;
